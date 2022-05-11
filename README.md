@@ -1,6 +1,6 @@
 # ATS-25 Radio programmed with Espruino
 
-These all-band (FM,LW,MW,SW with SSB) radios (see picture below) are available on AliExpress and Ebay. They consist of an SI4732-A10 chip which provides the radio functions driven via I2C by an ESP32 WROVER module which implements the display interface. This is an ILI9341 (with XPT2046 touch ) 320x240 pixel display.
+These all-band (FM,LW,MW,SW with SSB) radios (see picture below) are available on AliExpress and Ebay. They consist of an SI4732-A10 chip which provides the radio functions driven via I2C by an ESP32 WROOM module which implements the display interface. This is an ILI9341 (with XPT2046 touch ) 320x240 pixel display.
 
 ![](image/ats25.jpg)
 
