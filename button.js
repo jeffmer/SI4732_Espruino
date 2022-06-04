@@ -18,8 +18,10 @@ class Button {
   }
   action(){
     this.set();
-    setTimeout(()=>this.reset(),200);
-    this.fn(this.str);
+    setTimeout(()=>{
+      this.reset();
+       this.fn(this.str);
+    },200);
   }
   toggle(){
     this.press=!this.press;

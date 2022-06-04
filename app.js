@@ -105,7 +105,10 @@ function initRADIO(){
 function setControls(){ 
     watchD33(()=>{
       TUNEVOL=!TUNEVOL;
-      if(TUNEVOL && SELECTED>=0) SBUTTON[SELECTED].reset(); 
+      if(TUNEVOL && SELECTED>=0) {
+        SBUTTON[SELECTED].reset(); 
+        SELECTED=-1;
+      }
       drawVolume();
       drawFreq();
     });
@@ -161,7 +164,9 @@ function clearControls(){
   }
 }
 
+eval(STOR.read("keyboard.js"));
+
 initRADIO();
 drawFM();
 setControls();
- 
+
