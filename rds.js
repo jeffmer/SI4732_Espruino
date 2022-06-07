@@ -1,4 +1,5 @@
-var STATNAME = [];
+var STATNAME = new Uint8Array(8);
+var SEGMENTS  = 0;
 
 function rdsInit(){
     RADIO.setProp(0x1500,0x0001); // enable receive interrupt
@@ -7,20 +8,25 @@ function rdsInit(){
 }
 
 function getname(){
-   if (STATNAME.length==4) {
-   var S = "";
-   STATNAME.forEach(e=>{S=S+e;});
-   return S;
+   if (SEGMENTS==15) {
+     return E.toString(STATNAME);
    } else return null;
+}
+
+function drawStation(s){
+  if (s) g.setColor(-1).setFont("6x8",2).setFontAlign(-1,-1).drawString(s,20,40,true);
 }
 
 function decode(m){
     function cl(c){ c=c&0x7F; return c<32?42:c;}
     var g = (m[6]&0xF0)>>4;
-    var s = g==2?String.fromCharCode(cl(m[8]),cl(m[9]),cl(m[10]),cl(m[11])):g==0?String.fromCharCode(cl(m[10]),cl(m[11])):"";
     var o = g==0?m[7]&0x03:m[7]&0x0f;
-    if (g==0) STATNAME[o]=s;
-    return {group:g,b:(m[6]&0x08)>>3,offset:o,str:s};
+    if (g==0){
+      STATNAME[2*o]=cl(m[10]);
+      STATNAME[2*o+1]=cl(m[11]);
+      SEGMENTS=SEGMENTS|(1<<o);
+    }
+    return {group:g,b:(m[6]&0x08)>>3,offset:o};
 }
   
 function rdsStart(){
@@ -35,14 +41,13 @@ function rdsStart(){
         }
       }
       var name = getname(); 
-        if (name) {
-          g.setColor(-1).setFont("6x8",2).setFontAlign(-1,-1).drawString(name,20,50,true);
-        }
+      drawStation(name);
       },1000);
 }
+
 function rdsClear(){
-  STATNAME = [];
-  g.setColor(-1).setFont("6x8",2).setFontAlign(-1,-1).drawString("        ",20,50,true);
+  SEGMENTS=0;
+  drawStation("        ");
 }
 
 function rdsStop(){

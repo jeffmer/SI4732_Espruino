@@ -24,48 +24,48 @@ STATIONS.sort((a,b)=>{
   return 0;
 });
 
-var STATSEL  = new Selector(STATIONS,220,110);
+var STATSEL  = new Selector(STATIONS,220,120);
     
 var BUTTONS=[
-    new Button("Scan+",80, 110, 60, 32, ()=>{scan(true,0);}),
-    new Button("Scan-",80, 150, 60, 32, ()=>{scan(false,1);}),
-    new Button("Mute",80, 190, 60, 32, (b)=>{RADIO.mute(b);}),
-    new Button("Tune",10, 110, 60, 32, ()=>{setSelector(1,4,5);}),
-    new Button("Vol",10, 150, 60, 32, ()=>{setSelector(0,3,5);}),
-    new Button("Pre",10, 190, 60, 32, ()=>{setSelector(2,3,4)}),
-    new Button("RDS",150, 110, 60, 32, (b)=>{if (b) rdsStart(); else rdsStop();})
+    new Button("Scan+",80, 120, 60, 32, ()=>{scan(true,0);}),
+    new Button("Scan-",80, 160, 60, 32, ()=>{scan(false,1);}),
+    new Button("Mute",80, 200, 60, 32, (b)=>{RADIO.mute(b);}),
+    new Button("Tune",10, 120, 60, 32, ()=>{setSelector(1,4,5);}),
+    new Button("Vol",10, 160, 60, 32, ()=>{setSelector(0,3,5);}),
+    new Button("Pre",10, 200, 60, 32, ()=>{setSelector(2,3,4)}),
+    new Button("RDS",150, 120, 60, 32, (b)=>{if (b) rdsStart(); else rdsStop();})
 ];
 
 function drawFreq(){
   buf.clear();
   buf.setFont("Vector",48).setFontAlign(1,0).drawString((FREQ/100).toFixed(1),135,25);
-  g.setColor(STATE==1?Green:-1).drawImage(buf,110,40);
+  g.setColor(STATE==1?Green:-1).drawImage(buf,110,20);
 }
 
 function drawSignal(){
   g.setColor(Yellow);
-  g.setFont('6x8').setFontAlign(-1,-1).drawString("RSSI: "+RSSI+"   ",18,22,true);
-  g.setFontAlign(-1,-1).drawString("SNR: "+SNR+" ",260,22,true);
+  g.setFont('6x8').setFontAlign(-1,-1).drawString("RSSI: "+RSSI+"   ",18,12,true);
+  g.setFontAlign(-1,-1).drawString("SNR: "+SNR+" ",260,12,true);
 }
 
 function drawBat(){
   var v = 7.15*analogRead(D35);
-  g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("BAT: "+v.toFixed(1)+"V",248,90,true);
+  g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("BAT: "+v.toFixed(1)+"V",248,100,true);
 }
 
 function drawVolume(){
   var v = VOL;
-  if (v>=OLDVOL) g.setColor(STATE==0?Green:Grey).fillRect(45,91,45+v,97);
-  if (v<OLDVOL) g.clearRect(45+v,91,108,97);
+  if (v>=OLDVOL) g.setColor(STATE==0?Green:Grey).fillRect(45,101,45+v,107);
+  if (v<OLDVOL) g.clearRect(45+v,101,108,107);
   OLDVOL=v;
 }
 
 function drawFM(){
     g.setColor(Grey).fillRect(0,0,319,239);
-    g.clearRect(10,20,310,100);
-    g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("MHz",250,65);
-    g.setColor(Yellow).setFont("6x8",1).setFontAlign(-1,-1).drawString("VOL:",18,90);
-    g.setColor(-1).drawRect(44,90,109,98);
+    g.clearRect(10,10,310,110);
+    g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("MHz",250,45);
+    g.setColor(Yellow).setFont("6x8",1).setFontAlign(-1,-1).drawString("VOL:",18,100);
+    g.setColor(-1).drawRect(44,100,109,108);
     STATSEL.draw();
     for (var i=0;i<BUTTONS.length;i++) BUTTONS[i].draw();
     drawFreq();
@@ -89,6 +89,7 @@ var SCANNER=null;
 function scan(up,n){
   if (SCANNER) SCANNER=clearInterval(SCANNER);
   if(BUTTONS[(n+1)%2].press){BUTTONS[(n+1)%2].reset();}
+  rdsClear();
   RADIO.seek(up,false);
   SCANNER=setInterval(()=>{
       if (!RADIO.endTune()) return;
@@ -147,6 +148,7 @@ function setControls(){
         }
     };
     TC.on("touch",TC.touchHandler);
+    if (BUTTONS[6].press) rdsStart();
 }
 
 function clearControls(){
@@ -160,6 +162,7 @@ function clearControls(){
     TC.removeListener("touch",TC.touchHandler);
     delete TC.touchHandler;
   }
+  rdsStop();
 }
 
 eval(STOR.read("keyboard.js"));
