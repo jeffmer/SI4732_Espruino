@@ -4,18 +4,17 @@ const Yellow = g.toColor(1,1,0);
 const Blue = g.toColor(0,0,1);
 
 eval(STOR.read("button.js"));
-eval(STOR.read("selector.js"));
 
 var VOL=35;
 var OLDVOL=0;
-var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= STATION
+var TUNEVOL=false;
 var FREQ = 9320;
 var RSSI =0;
 var SNR =0;
 var LOWBAND = 8750;
 var HIGHBAND = 10790;
+var SELECTED = -1;
 var buf = Graphics.createArrayBuffer(140,50,1,{msb:true});
-eval(STOR.read("rds.js"));
 
 var STATIONS = require("Storage").readJSON("stations.json")||[]
 STATIONS.sort((a,b)=>{
@@ -24,50 +23,52 @@ STATIONS.sort((a,b)=>{
   return 0;
 });
 
-var STATSEL  = new Selector(STATIONS,220,110);
+var NSTAT = STATIONS.length<=6 ? STATIONS.length : 6;
+
+var SBUTTON = [];
+for (var n = 0;n<NSTAT;n++) 
+  SBUTTON[n] = new Button(STATIONS[n].station,20+Math.floor(n/3)*100,110+(n%3)*40,90,32);
     
 var BUTTONS=[
-    new Button("Scan+",80, 110, 60, 32, ()=>{scan(true,0);}),
-    new Button("Scan-",80, 150, 60, 32, ()=>{scan(false,1);}),
-    new Button("Mute",80, 190, 60, 32, (b)=>{RADIO.mute(b);}),
-    new Button("Tune",10, 110, 60, 32, ()=>{setSelector(1,4,5);}),
-    new Button("Vol",10, 150, 60, 32, ()=>{setSelector(0,3,5);}),
-    new Button("Pre",10, 190, 60, 32, ()=>{setSelector(2,3,4)}),
-    new Button("RDS",150, 110, 60, 32, (b)=>{if (b) rdsStart(); else rdsStop();})
+     new Button("SCAN+",230, 110, 70, 32, ()=>{scan(true,0);}),
+     new Button("SCAN-",230, 150, 70, 32, ()=>{scan(false,1);}),
+     new Button("MUTE",230, 190, 70, 32, (b)=>{RADIO.mute(b);})
 ];
 
 function drawFreq(){
   buf.clear();
   buf.setFont("Vector",48).setFontAlign(1,0).drawString((FREQ/100).toFixed(1),135,25);
-  g.setColor(STATE==1?Green:-1).drawImage(buf,110,40);
+  g.setColor(TUNEVOL?Green:-1).drawImage(buf,90,40);
 }
 
 function drawSignal(){
   g.setColor(Yellow);
-  g.setFont('6x8').setFontAlign(-1,-1).drawString("RSSI: "+RSSI+"   ",18,22,true);
-  g.setFontAlign(-1,-1).drawString("SNR: "+SNR+" ",260,22,true);
+  g.setFont('6x8').setFontAlign(-1,-1).drawString("RSSI: "+RSSI+"   ",28,22,true);
+  g.setFontAlign(-1,-1).drawString("SNR: "+SNR+" ",250,22,true);
 }
 
 function drawBat(){
   var v = 7.15*analogRead(D35);
-  g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("BAT: "+v.toFixed(1)+"V",248,90,true);
+  g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("BAT: "+v.toFixed(1)+"V",238,90,true);
 }
 
 function drawVolume(){
   var v = VOL;
-  if (v>=OLDVOL) g.setColor(STATE==0?Green:Grey).fillRect(45,91,45+v,97);
-  if (v<OLDVOL) g.clearRect(45+v,91,108,97);
+  if (v>=OLDVOL) g.setColor(TUNEVOL?Grey:Green).fillRect(55,91,55+v,97);
+  if (v<OLDVOL) g.clearRect(55+v,91,123,97);
   OLDVOL=v;
 }
 
 function drawFM(){
     g.setColor(Grey).fillRect(0,0,319,239);
-    g.clearRect(10,20,310,100);
-    g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("MHz",250,65);
-    g.setColor(Yellow).setFont("6x8",1).setFontAlign(-1,-1).drawString("VOL:",18,90);
-    g.setColor(-1).drawRect(44,90,109,98);
-    STATSEL.draw();
-    for (var i=0;i<BUTTONS.length;i++) BUTTONS[i].draw();
+    g.clearRect(20,20,300,100);
+    g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("MHz",230,65);
+    g.setColor(Yellow).setFont("6x8",1).setFontAlign(-1,-1).drawString("VOL:",28,90);
+    g.setColor(-1).drawRect(54,90,124,98);
+    for (var i=0; i<NSTAT; ++i) 
+        if (i==SELECTED) SBUTTON[i].set(); else SBUTTON[i].reset(); 
+    for (var i=0;i<3;i++) BUTTONS[i].draw();
+    g.setColor(0).fillRect(219,110,221,220);
     drawFreq();
     drawSignal();
     drawBat();
@@ -76,7 +77,6 @@ function drawFM(){
 
 function setTune(f){
   RADIO.tune(f);
-  STATNAME = [];
   while(!RADIO.endTune());
   var r= RADIO.getTuneStatus();
   FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;
@@ -88,6 +88,7 @@ var SCANNER=null;
 
 function scan(up,n){
   if (SCANNER) SCANNER=clearInterval(SCANNER);
+  if(!TUNEVOL && SELECTED>=0) {SBUTTON[SELECTED].reset(); SELECTED=-1;}
   if(BUTTONS[(n+1)%2].press){BUTTONS[(n+1)%2].reset();}
   RADIO.seek(up,false);
   SCANNER=setInterval(()=>{
@@ -107,30 +108,27 @@ function initRADIO(){
     RADIO.volume(VOL);
 }
 
-function setSelector(st,b1,b2){
-  STATE=st;
-  BUTTONS[b1].reset();
-  BUTTONS[b2].reset();
-  STATSEL.draw(STATE==2);
-  drawVolume();
-  if (STATE==2) setTune(STATSEL.freq()); else drawFreq();
-}
-
 function setControls(){ 
+    watchD33(()=>{
+      TUNEVOL=!TUNEVOL;
+      if(TUNEVOL && SELECTED>=0) {
+        SBUTTON[SELECTED].reset(); 
+        SELECTED=-1;
+      }
+      drawVolume();
+      drawFreq();
+    });
     ROTARY.handler = (inc) => {
-      if (STATE==1)
+      if (TUNEVOL)
          {FREQ+=(inc*10);
           FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
           setTune(FREQ);
-      } else if(STATE==0) {
+      } else {
           VOL+=inc;
           VOL=VOL<0?0:VOL>63?63:VOL;
           drawVolume();
           RADIO.volume(VOL);
-      } else {
-        STATSEL.move(inc);
-        setTune(STATSEL.freq());
-      }     
+      }
     };
     ROTARY.on("change",ROTARY.handler);     
     RADIO.signalQPoll = setInterval(()=>{
@@ -140,13 +138,23 @@ function setControls(){
         drawBat();
       },500);
     TC.touchHandler = (p) => {
-      for (var j = 0; j < BUTTONS.length; ++j)
+      if (!TUNEVOL)
+        for (var i = 0; i < NSTAT; ++i)
+          if (SBUTTON[i].isTouched(p)) {
+            if (SELECTED >= 0)
+            SBUTTON[SELECTED].reset();
+            SBUTTON[i].set();
+            setTune(STATIONS[i].freq);
+            SELECTED = i;
+            return;
+          }
+      for (var j = 0; j < 3; ++j)
         if (BUTTONS[j].isTouched(p)) {
           BUTTONS[j].toggle();
           return;
         }
     };
-    TC.on("touch",TC.touchHandler);
+      TC.on("touch",TC.touchHandler);
 }
 
 function clearControls(){

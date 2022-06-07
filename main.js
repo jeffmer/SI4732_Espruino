@@ -22,6 +22,6 @@ function watchD33(fn){
     },200);
 }
 
-function clearD33(){ clearInterval(global.D33POLL);}
+function clearD33(){ if (global.D33POLL) global.D33POLL = clearInterval(global.D33POLL);}
 
 eval(STOR.read("app.js"));

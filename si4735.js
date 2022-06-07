@@ -75,6 +75,21 @@ var RADIO = {
       var res = RADIO.read(8);
       return {status:res[0],valid:res[2],rssi:res[4],snr:res[5]};
     },
+    getRDS:()=>{
+      if (!RADIO.waitCTS()) return;
+      var cm = new Uint8Array(2);
+      cm[0] = 0x24;
+      cm[1] = 0x01;
+      RADIO.write(cm);
+      var res = RADIO.read(13);
+      return res;
+    },
+    hasRDS:()=>{
+      if (!RADIO.waitCTS()) return;
+      RADIO.write(0x14);
+      var s = RADIO.read(1)[0];
+      return (s&4)>0;
+    },
     setProp:(id,v)=>{
       if (!RADIO.waitCTS()) return;
       var cm = new Uint8Array(6);
