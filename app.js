@@ -76,7 +76,7 @@ function drawFM(){
 
 function setTune(f){
   RADIO.tune(f);
-  STATNAME = [];
+  rdsClear();
   while(!RADIO.endTune());
   var r= RADIO.getTuneStatus();
   FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;

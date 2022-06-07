@@ -40,9 +40,13 @@ function rdsStart(){
         }
       },1000);
 }
+function rdsClear(){
+  STATNAME = [];
+  g.setColor(-1).setFont("6x8",2).setFontAlign(-1,-1).drawString("        ",20,50,true);
+}
 
 function rdsStop(){
-    g.setColor(-1).setFont("6x8",2).setFontAlign(-1,-1).drawString("        ",20,50,true);
+    rdsClear();
     if (global.RDSPOLL) global.RDSPOLL=clearInterval(global.RDSPOLL);
 }
 
