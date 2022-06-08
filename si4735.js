@@ -73,7 +73,7 @@ var RADIO = {
       cm[1] = 0x00;
       RADIO.write(cm);
       var res = RADIO.read(8);
-      return {status:res[0],valid:res[2],rssi:res[4],snr:res[5]};
+      return {status:res[0],valid:res[2],stereo:res[3]>>7,rssi:res[4],snr:res[5]};
     },
     getRDS:()=>{
       if (!RADIO.waitCTS()) return;

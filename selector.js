@@ -17,12 +17,17 @@ class Selector {
     draw(b) { 
         this.buf.setColor(0).fillRect({x:0,y:0,x1:89,y2:109,r:10});
         function mod(a,n) {return a>=n?a-n:a<0?a+n:a;}
-        for (var i =-2;i<3;i++)
-            this.buf.setColor(i==0&&b?1:2).setFont("Vector",18-(i>=0?2*i:2*-i)).drawString(this.list[this.mod(this.pos+i,this.list.length)].station,45,55+20*i);
+        var len = this.list.length;
+        if (len!=0){
+            var bound = len>=5?2:len>=3?1:0;
+            for (var i =-bound;i<=bound;i++)
+                this.buf.setColor(i==0&&b?1:2).setFont("Vector",18-(i>=0?2*i:2*-i)).drawString(this.list[mod(this.pos+i,len)].station,45,55+20*i);
+        }
         g.drawImage({width:90,height:110,bpp:2,palette:this.pal,buffer:this.buf.buffer},this.px,this.py);
     }
 
     move(inc){
+        if (this.list.length==0) return;
         this.pos=this.mod(this.pos+inc,this.list.length);
         this.draw(true);
     }
@@ -30,5 +35,18 @@ class Selector {
     freq(){
         return this.list[this.pos].freq;
     }
+
+    add(name,f){
+        if (this.list.length!=0 && name==this.list[this.pos].station) return;
+        this.list.splice(this.pos,0,{station:name,freq:f});
+    }
+
+    del(){
+        if(this.list.length==0) return;
+        this.list.splice(this.pos,1);
+        if (this.pos==this.list.length) --this.pos;
+        if (this.pos<0) this.pos=0;
+    }
+
 }
 
