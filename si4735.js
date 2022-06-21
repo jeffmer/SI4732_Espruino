@@ -1,8 +1,8 @@
 var RADIOI2C = new I2C();
 RADIOI2C.setup({scl:D22,sda:D21,bitrate:200000});
 
-
 var RADIO = {
+    isFM:null,
     delayms:(d) => {
         var t = getTime()+d/1000; while(getTime()<t);
     },
@@ -24,6 +24,7 @@ var RADIO = {
     },
     powerFM:(b)=>{
       if (b) {
+        RADIO.isFM=true;
         RADIO.write([0x01,0x90,0x05]);  //FM analogue
       } else {
         RADIO.write(0x11);
@@ -31,6 +32,17 @@ var RADIO = {
       RADIO.delayms(500); //stabilisation delay
       return RADIO.waitCTS();
     },
+    powerAM:(b)=>{
+      if (b) {
+        RADIO.isFM=false;
+        RADIO.write([0x01,0xC1,0x05]);  //FM analogue
+      } else {
+        RADIO.write(0x11);
+      }
+      RADIO.delayms(500); //stabilisation delay
+      return RADIO.waitCTS();
+    },
+
     tune:(f)=>{
       if (!RADIO.waitCTS()) return;
       var cm = new Uint8Array(5);
@@ -39,6 +51,17 @@ var RADIO = {
       cm[2] = f>>8;
       cm[3] = f & 0xFF;
       cm[4] = 0;
+      RADIO.write(cm);
+    },
+    tuneAM:(f,sw)=>{
+      if (!RADIO.waitCTS()) return;
+      var cm = new Uint8Array(6);
+      cm[0] = 0x40;
+      cm[1] = 0x00;
+      cm[2] = f>>8;
+      cm[3] = f & 0xFF;
+      cm[4] = 0;
+      cm[5] = sw?1:0;
       RADIO.write(cm);
     },
     endTune:()=>{
@@ -50,7 +73,7 @@ var RADIO = {
     getTuneStatus:()=>{
       if (!RADIO.waitCTS()) return;
       var cm = new Uint8Array(2);
-      cm[0] = 0x22;
+      cm[0] = RADIO.isFM?0x22:0x42;
       cm[1] = 0x01;
       RADIO.write(cm);
       var res = RADIO.read(8);
@@ -59,7 +82,7 @@ var RADIO = {
     seek:(up,wrap)=>{
       if (!RADIO.waitCTS()) return;
       var cm = new Uint8Array(2);
-      cm[0] = 0x21;
+      cm[0] = RADIO.isFM?0x21:0x41;
       var arg = 0;
       if (up) arg = arg|0x08;
       if (wrap) arg = arg | 0x04;
@@ -69,10 +92,10 @@ var RADIO = {
     getSQ:()=>{
       if (!RADIO.waitCTS()) return;
       var cm = new Uint8Array(2);
-      cm[0] = 0x23;
+      cm[0] = RADIO.isFM?0x23:0x43;
       cm[1] = 0x00;
       RADIO.write(cm);
-      var res = RADIO.read(8);
+      var res = RADIO.read(RADIO.isFM?8:6);
       return {status:res[0],valid:res[2],stereo:res[3]>>7,rssi:res[4],snr:res[5]};
     },
     getRDS:()=>{

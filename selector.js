@@ -21,7 +21,7 @@ class Selector {
         if (len!=0){
             var bound = len>=5?2:len>=3?1:0;
             for (var i =-bound;i<=bound;i++)
-                this.buf.setColor(i==0&&b?1:2).setFont("Vector",18-(i>=0?2*i:2*-i)).drawString(this.list[mod(this.pos+i,len)].station,45,55+20*i);
+                this.buf.setColor(i==0&&b?1:2).setFont("Vector",18-(i>=0?2*i:2*-i)).drawString(this.list[mod(this.pos+i,len)].name,45,55+20*i);
         }
         g.drawImage({width:90,height:110,bpp:2,palette:this.pal,buffer:this.buf.buffer},this.px,this.py);
     }
@@ -36,9 +36,9 @@ class Selector {
         return this.list[this.pos].freq;
     }
 
-    add(name,f){
-        if (this.list.length!=0 && name==this.list[this.pos].station) return;
-        this.list.splice(this.pos,0,{station:name,freq:f});
+    add(newname,f){
+        if (this.list.length!=0 && newname==this.list[this.pos].name) return;
+        this.list.splice(this.pos,0,{name:newname,freq:f});
     }
 
     del(){

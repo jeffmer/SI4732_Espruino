@@ -192,6 +192,42 @@ function clearControls(){
 
 eval(STOR.read("keyboard.js"));
 
+function toKBD() {
+  SCREEN=1;
+  clearControls();
+  g.setColor(Grey).fillRect(0,0,319,239);
+  KBD.enable(true).draw();
+}
+
+function toRADIO() {
+  SCREEN=0;
+  KBD.enable(false);
+  if (KBD.valid()) {
+    setTune(KBD.freq());
+    SELECTED=-1;
+  }
+  setControls();
+  drawFM();
+}
+
+var KBD = new Keyboard(LOWBAND,HIGHBAND,toRADIO).init();
+
+var SCREEN = 0;
+
+TC.swipeHandler = (dir) => {
+  if (dir == TC.DOWN && SCREEN == 0) {
+    toKBD();
+    return;
+  }
+  if (dir == TC.UP && SCREEN == 1) {
+    toRADIO();
+    return;
+  }
+  if (dir==TC.LEFT || dir ==TC.RIGHT) load("chooser.js");
+};
+
+TC.on("swipe",TC.swipeHandler);
+
 initRADIO();
 drawFM();
 setControls();
