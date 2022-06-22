@@ -36,6 +36,10 @@ class Selector {
         return this.list[this.pos].freq;
     }
 
+    selected(){
+        return this.list[this.pos];
+    }
+
     add(newname,f){
         if (this.list.length!=0 && newname==this.list[this.pos].name) return;
         this.list.splice(this.pos,0,{name:newname,freq:f});

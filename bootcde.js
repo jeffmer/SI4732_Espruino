@@ -1,2 +1,2 @@
-eval(STOR.read("fmradio.js"));
+eval(STOR.read("chooser.js"));
 

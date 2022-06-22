@@ -35,7 +35,7 @@ var RADIO = {
     powerAM:(b)=>{
       if (b) {
         RADIO.isFM=false;
-        RADIO.write([0x01,0xC1,0x05]);  //FM analogue
+        RADIO.write([0x01,0x91,0x05]);  //FM analogue
       } else {
         RADIO.write(0x11);
       }

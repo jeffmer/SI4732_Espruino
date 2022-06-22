@@ -1,5 +1,5 @@
 
-[ {"name":"LW","mod":"AM","min":130,"max":279,"freq":198,"step":9},
+[ {"name":"LW","mod":"AM","min":153,"max":279,"freq":198,"step":9},
   {"name":"MW","mod":"AM","min":522,"max":1701,"freq":1395,"step":9},       
   {"name":"BEACON","mod":"AM","min":280,"max":470,"freq": 284,"step":1},
   {"name":"630M","mod":"LSB","min":472,"max": 479,"freq": 475,"step":1},
@@ -24,8 +24,8 @@
   {"name":"15M","mod":"USB","min":21000,"max":21450,"freq":21350,"step":1},
   {"name":"13M","mod":"AM","min":21450,"max":21850,"freq":21500,"step":5},
   {"name":"12M","mod":"USB","min":24890,"max":24990,"freq":24940,"step":1},
-  {"name":"11M","mod":"AM","min":25670,"max":26100,"freq":25800,"step":5,},
-  {"name":"CB","mod":"AM","min":26200,"max":27990,"freq":7200,"step":1},
+  {"name":"11M","mod":"AM","min":25670,"max":26100,"freq":25800,"step":5},
+  {"name":"CB","mod":"AM","min":26200,"max":27990,"freq":27200,"step":1},
   {"name":"10M","mod":"USB","min":28000,"max":30000,"freq":28500,"step":1},
   {"name":"SW","mod":"AM","min":1730,"max":30000,"freq":15500,"step":5}]
 

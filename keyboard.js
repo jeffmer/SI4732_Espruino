@@ -1,9 +1,10 @@
 class Keyboard {
-  constructor(low,high,fn){
+  constructor(low,high,fn,khz){
     this.low = low;
     this.high = high;
     this.buf = Graphics.createArrayBuffer(160,50,1,{msb:true});
     this.keys = [];
+    this.khz = khz;
     this.ACC=0;
     this.VALID=false;
     this.fn = fn;
@@ -11,12 +12,14 @@ class Keyboard {
 
   display() {
     this.buf.clear();
-    this.buf.setFont("Vector",32).setFontAlign(1,0).drawString((this.freq()/100).toFixed(1),135,25);
+    this.buf.setFont("Vector",32).setFontAlign(1,0);
+    if (this.khz) this.buf.drawString((this.freq()).toFixed(0),135,25);
+    else this.buf.drawString((this.freq()/100).toFixed(1),135,25);
     g.setColor(this.valid()?Green:-1).drawImage(this.buf,80,5);
   }
 
   freq() {
-    return this.ACC*10;
+     return this.khz?this.ACC:this.ACC*10;
   }
 
   valid() {
@@ -60,12 +63,12 @@ class Keyboard {
   }      
     
   draw(){
-    var lowstr = (this.low/100).toFixed(1);
-    var highstr = (this.high/100).toFixed(1);
+    var lowstr = this.khz?this.low.toFixed(0)+" KHz":(this.low/100).toFixed(1)+" MHz";
+    var highstr = this.khz?this.low.toFixed(0)+" KHz":(this.high/100).toFixed(1)+" MHz";
     this.display();
-    g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("MHz",260,30);
+    g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString(this.khz?"KHz":"MHz",260,30);
     g.setFont("6x8",1)
-     .drawString("Low:\n"+lowstr+" Mhz\nHigh:\n"+highstr+" MHz",20,30);
+     .drawString("Low:\n"+lowstr+"\nHigh:\n"+highstr,20,30);
     for (var i =0;i<this.keys.length;i++) this.keys[i].draw();
   }
 }
