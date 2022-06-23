@@ -12,6 +12,7 @@ eval(STOR.read("encoder.js"));
 var ROTARY = createEncoder(D16,D17);
 //var ROTARY = createEncoder(D14,D12);
 eval(STOR.read("si4735.js"));
+RADIO.reset();
 
 function watchD33(fn){
     global.D33STATE=false;
@@ -23,3 +24,6 @@ function watchD33(fn){
 }
 
 function clearD33(){ if (global.D33POLL) global.D33POLL = clearInterval(global.D33POLL);}
+
+TC.on("longtouch",()=>{load("chooser.js");});
+

@@ -1,5 +1,5 @@
-var RADIOI2C = new I2C();
-RADIOI2C.setup({scl:D22,sda:D21,bitrate:200000});
+//var RADIOI2C = new I2C();
+I2C1.setup({scl:D22,sda:D21,bitrate:200000});
 
 var RADIO = {
     isFM:null,
@@ -7,10 +7,10 @@ var RADIO = {
         var t = getTime()+d/1000; while(getTime()<t);
     },
     write:(d) => { 
-        RADIOI2C.writeTo(0x63,d);
+      I2C1.writeTo(0x63,d);
     }, 
     read:(n) => {
-        return RADIOI2C.readFrom(0x63,n); 
+        return I2C1.readFrom(0x63,n); 
     },
     reset:() => {
         D12.set();
@@ -35,11 +35,27 @@ var RADIO = {
     powerAM:(b)=>{
       if (b) {
         RADIO.isFM=false;
-        RADIO.write([0x01,0x91,0x05]);  //FM analogue
+        RADIO.write([0x01,0x91,0x05]);  //AM analogue
       } else {
         RADIO.write(0x11);
       }
       RADIO.delayms(500); //stabilisation delay
+      return RADIO.waitCTS();
+    },
+    powerSSB:(b)=>{
+      if (b) {
+        RADIO.isFM=false;
+        RADIO.write([0x01,0x91,0x05]);  //AM patch analogue
+        var nb = SSB.lenPatch();
+        var next = 0;
+        while(next<nb) {
+          RADIO.write(SSB.getPatch(next,8));
+          next+=8;
+        }
+        if (next!=nb) return false;
+      } else {
+        RADIO.write(0x11);
+      }
       return RADIO.waitCTS();
     },
 
@@ -58,6 +74,17 @@ var RADIO = {
       var cm = new Uint8Array(6);
       cm[0] = 0x40;
       cm[1] = 0x00;
+      cm[2] = f>>8;
+      cm[3] = f & 0xFF;
+      cm[4] = 0;
+      cm[5] = sw?1:0;
+      RADIO.write(cm);
+    },
+    tuneSSB:(f,sw,usb)=>{
+      if (!RADIO.waitCTS()) return;
+      var cm = new Uint8Array(6);
+      cm[0] = 0x40;
+      cm[1] = usb?0x80:0x40;
       cm[2] = f>>8;
       cm[3] = f & 0xFF;
       cm[4] = 0;
@@ -97,6 +124,14 @@ var RADIO = {
       RADIO.write(cm);
       var res = RADIO.read(RADIO.isFM?8:6);
       return {status:res[0],valid:res[2],stereo:res[3]>>7,rssi:res[4],snr:res[5]};
+    },
+    setAGC:(enable,val)=>{
+      if (!RADIO.waitCTS()) return;
+      var cm = new Uint8Array(3);
+      cm[0] = 0x48;
+      cm[1] = enable?0:1;
+      cm[2] = val;
+      RADIO.write(cm);
     },
     getRDS:()=>{
       if (!RADIO.waitCTS()) return;
