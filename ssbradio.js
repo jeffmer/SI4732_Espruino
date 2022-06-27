@@ -63,7 +63,7 @@ function drawFreq(){
 }
 
 function setBFO(bv){
-  g.setColor(-1).setFont("6x8",2).setFontAlign(1,-1).drawString("   "+bv+" Hz",280,80,true);
+  g.setColor(-1).setFont("6x8",2).setFontAlign(1,-1).drawString("   "+bv+" Hz",280,70,true);
   RADIO.setProp(0x0100,bv);
   BFO=bv;
 }
@@ -103,14 +103,14 @@ function drawSSB(){
     drawBat();
 }
 
-function setBand() {
+function setBand(f) {
   if (BANDS.length!=0) {
     var bd = BANDSEL.selected();
     BANDNAME=bd.name;
     LOWBAND =bd.min;
     HIGHBAND=bd.max;
     STEP=bd.step;
-    FREQ=bd.freq;
+    if (f) FREQ=f; else FREQ=bd.freq;
     MOD = bd.mod;
     CAP= (bd.name=="LW" || bd.name=="MW")?0:1;
   }
@@ -216,7 +216,14 @@ function toRADIO() {
   KBD.enable(false);
   if (KBD.valid()) {
     setTune(KBD.freq());
-    SELECTED=-1;
+  } else {
+    var f = KBD.freq();
+    var bi = BANDS.findIndex((e)=>{return f<=e.max && f>=e.min;});
+    if (bi>=0) {
+      BANDSEL.pos=bi;
+      BANDSEL.draw(true);
+      setBand(f);
+    }
   }
   delete KBD;
   setControls();

@@ -3,7 +3,7 @@ eval(STOR.read("selector.js"));
 eval(STOR.read("bardisp.js"));
 
 var VOL=45;
-var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= BAND
+var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= BAND, 5 = NOTHING
 var FREQ = 198;
 var RSSI =0;
 var SNR =0;
@@ -24,9 +24,9 @@ var BUTTONS=[
     new Button("Scan+",80, 120, 60, 32, ()=>{scan(true,0);}),
     new Button("Scan-",80, 160, 60, 32, ()=>{scan(false,1);}),
     new Button("Mute",80, 200, 60, 32, (b)=>{RADIO.mute(b);}),
-    new Button("Tune",10, 120, 60, 32, ()=>{setSelector(1,4,5);}),
-    new Button("Vol",10, 160, 60, 32, ()=>{setSelector(0,3,5);}),
-    new Button("Band",10, 200, 60, 32, ()=>{setSelector(2,3,4);}),
+    new Button("Tune",10, 120, 60, 32, (b)=>{setSelector(b,1,4,5);}),
+    new Button("Vol",10, 160, 60, 32, (b)=>{setSelector(b,0,3,5);}),
+    new Button("Band",10, 200, 60, 32, (b)=>{setSelector(b,2,3,4);}),
     new Button("Step",150, 120, 60, 32, (b)=>{changeStep(b,6);}),
     new Button("BWid",150, 160, 60, 32, (b)=>{changeBW(b,7);})
 ];
@@ -91,14 +91,14 @@ function drawAM(){
     drawBat();
 }
 
-function setBand() {
+function setBand(f) {
   if (BANDS.length!=0) {
     var bd = BANDSEL.selected();
     BANDNAME=bd.name;
     LOWBAND =bd.min;
     HIGHBAND=bd.max;
     STEP=bd.step;
-    FREQ=bd.freq;
+    if (f) FREQ=f; else FREQ=bd.freq;
     CAP= (bd.name=="LW" || bd.name=="MW")?0:1;
   }
   drawBand();
@@ -142,8 +142,8 @@ function initRADIO(){
     setBand();
 }
 
-function setSelector(st,b1,b2){
-  STATE=st;
+function setSelector(b,st,b1,b2){
+  if (!b) STATE=5; else STATE=st;
   BUTTONS[b1].reset();
   BUTTONS[b2].reset();
   BANDSEL.draw(true);
@@ -213,7 +213,14 @@ function toRADIO() {
   KBD.enable(false);
   if (KBD.valid()) {
     setTune(KBD.freq());
-    SELECTED=-1;
+  } else {
+    var f = KBD.freq();
+    var bi = BANDS.findIndex((e)=>{return f<=e.max && f>=e.min;});
+    if (bi>=0) {
+      BANDSEL.pos=bi;
+      BANDSEL.draw(true);
+      setBand(f);
+    }
   }
   delete KBD;
   setControls();
