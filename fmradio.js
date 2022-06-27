@@ -1,13 +1,8 @@
-const Grey = g.toColor(0.6,0.6,0.6);
-const Green = g.toColor(0,1,0);
-const Yellow = g.toColor(1,1,0);
-const Blue = g.toColor(0,0,1);
-
 eval(STOR.read("button.js"));
 eval(STOR.read("selector.js"));
+eval(STOR.read("bardisp.js"));
 
-var VOL=35;
-var OLDVOL=0;
+var VOL=45;
 var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= STATION
 var FREQ = 9320;
 var RSSI =0;
@@ -58,10 +53,12 @@ function delStation(b){
   BUTTONS[8].reset();
 }
 
+var VOLDISP = new BarDisp("VOL:",45,100,VOL);
+
 function drawFreq(){
   buf.clear();
   buf.setFont("Vector",48).setFontAlign(1,0).drawString((FREQ/100).toFixed(1),135,30);
-  g.setColor(STATE==1?Green:-1).drawImage(buf,110,20);
+  g.setColor(-1).drawImage(buf,110,20);
 }
 
 function drawSignal(){
@@ -76,25 +73,16 @@ function drawBat(){
   g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("BAT: "+v.toFixed(1)+"V",248,100,true);
 }
 
-function drawVolume(){
-  var v = VOL;
-  if (v>=OLDVOL) g.setColor(STATE==0?Green:Grey).fillRect(45,101,45+v,107);
-  if (v<OLDVOL) g.clearRect(45+v,101,108,107);
-  OLDVOL=v;
-}
-
 function drawFM(){
     g.setColor(Grey).fillRect(0,0,319,239);
     g.clearRect(10,10,310,110);
     g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("MHz",250,50);
-    g.setColor(Yellow).setFont("6x8",1).setFontAlign(-1,-1).drawString("VOL:",18,100);
-    g.setColor(-1).drawRect(44,100,109,108);
+    VOLDISP.draw();
     STATSEL.draw();
     for (var i=0;i<BUTTONS.length;i++) BUTTONS[i].draw();
     drawFreq();
     drawSignal();
     drawBat();
-    drawVolume();
 }
 
 function setTune(f){
@@ -138,7 +126,6 @@ function setSelector(st,b1,b2){
   BUTTONS[b1].reset();
   BUTTONS[b2].reset();
   STATSEL.draw(STATE==2);
-  drawVolume();
   if (STATE==2 && STATIONS.length!=0) setTune(STATSEL.freq()); else drawFreq();
 }
 
@@ -151,7 +138,7 @@ function setControls(){
       } else if(STATE==0) {
           VOL+=inc;
           VOL=VOL<0?0:VOL>63?63:VOL;
-          drawVolume();
+          VOLDISP.update(VOL);
           RADIO.volume(VOL);
       } else {
         STATSEL.move(inc);

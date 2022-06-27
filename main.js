@@ -6,6 +6,10 @@ function setSPI1Freq(f){
 setSPI1Freq(20000000);
 eval(STOR.read("ili9342.js"));
 var g = ILI9342();
+const Grey = g.toColor(0.6,0.6,0.6);
+const Green = g.toColor(0,1,0);
+const Yellow = g.toColor(1,1,0);
+const Blue = g.toColor(0,0,1);
 eval(STOR.read("xpt2046.js"));
 var TC = createXPT2046();
 eval(STOR.read("encoder.js"));

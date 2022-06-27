@@ -2,36 +2,45 @@ eval(STOR.read("button.js"));
 eval(STOR.read("selector.js"));
 eval(STOR.read("bardisp.js"));
 
-var VOL=45;
-var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= BAND
-var FREQ = 198;
+var VOL=35;
+var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= BAND, 3 = BFO, 4 = ATT, 5 = DO Nothing
+var FREQ = 5450;
+var BFO = 0;
+var ATT = 0;
+var AGC = true;
 var RSSI =0;
 var SNR =0;
 var BANDNAME ="LW";
-var LOWBAND = 130;
-var HIGHBAND = 279;
+var LOWBAND = 4700;
+var HIGHBAND = 5500;
+var MOD="USB";
+var SSB_MODE=0x9001; //AFC disable, AVC enable, bandpass&cutoff, 2.2Khz BW
 var STEP = 9;
 var BWindex = 1;
-var CAP =0;
+var CAP =1;
 
 var buf = Graphics.createArrayBuffer(140,50,1,{msb:true});
 
-var BANDS = (STOR.readJSON("bands.json")||[]).filter((e)=>{return e.mod=="AM";});
+var BANDS = (STOR.readJSON("bands.json")||[]).filter((e)=>{return e.mod!="AM";});
 
 var BANDSEL  = new Selector(BANDS,220,120);
-    
-var BUTTONS=[
-    new Button("Scan+",80, 120, 60, 32, ()=>{scan(true,0);}),
-    new Button("Scan-",80, 160, 60, 32, ()=>{scan(false,1);}),
-    new Button("Mute",80, 200, 60, 32, (b)=>{RADIO.mute(b);}),
-    new Button("Tune",10, 120, 60, 32, ()=>{setSelector(1,4,5);}),
-    new Button("Vol",10, 160, 60, 32, ()=>{setSelector(0,3,5);}),
-    new Button("Band",10, 200, 60, 32, ()=>{setSelector(2,3,4);}),
-    new Button("Step",150, 120, 60, 32, (b)=>{changeStep(b,6);}),
-    new Button("BWid",150, 160, 60, 32, (b)=>{changeBW(b,7);})
-];
 
 var VOLDISP = new BarDisp("VOL:",45,100,VOL);
+var ATTDISP = new BarDisp("ATT:",150,100,ATT);
+    
+var BUTTONS=[
+    new Button("Step",80, 120, 60, 32, (b)=>{changeStep(b,0);}),
+    new Button("BWid",80, 160, 60, 32, (b)=>{changeBW(b,1);}),
+    new Button("Mute",80, 200, 60, 32, (b)=>{RADIO.mute(b);}),
+    new Button("Tune",10, 120, 60, 32, (b)=>{setSelector(b,1,4,5,6,7);}),
+    new Button("Vol",10, 160, 60, 32, (b)=>{setSelector(b,0,3,5,6,7);}),
+    new Button("Band",10, 200, 60, 32, (b)=>{setSelector(b,2,3,4,6,7);}),
+    new Button("BFO",150, 120, 60, 32, (b)=>{setSelector(b,3,3,4,5,7);}),
+    new Button("ATT",150, 160, 60, 32, (b)=>{setSelector(b,4,3,4,5,6);}),
+    new Button("AGC",150, 200, 60, 32, (b)=>{AGC=b;RADIO.setAGC(AGC,ATT);}),
+];
+
+BUTTONS[8].press = AGC;
 
 var stepindex= 2;
 const steps =[1,5,9,10];
@@ -43,11 +52,13 @@ function changeStep(b,n){
   setTimeout(()=>{BUTTONS[n].reset();},200);
 }
 
-const bwidss =[6,4,3,2,1,1.8,2.5];
+const bwidss =[1.2,2.2,3,4,0.5,1];
 function changeBW(b,n){
   if (!b) return;
-  BWindex = (BWindex+1)%7;
-  RADIO.setProp(0x3102,BWindex);
+  BWindex = (BWindex+1)%6;
+  var pat = bwidss[BWindex]<2.5 ? BWindex : 0x10 | BWindex;
+  SSB_MODE = (SSB_MODE & 0xFF00) | pat;
+  RADIO.setProp(0x0101,SSB_MODE);
   g.setColor(-1).setFont('6x8').setFontAlign(-1,-1).drawString("Bwid: "+bwidss[BWindex].toFixed(1)+"KHz ",18,78,true);
   setTimeout(()=>{BUTTONS[n].reset();},200);
 }
@@ -58,6 +69,12 @@ function drawFreq(){
   g.setColor(-1).drawImage(buf,120,20);
 }
 
+function setBFO(bv){
+  g.setColor(-1).setFont("6x8",2).setFontAlign(1,-1).drawString("   "+bv+" Hz",280,80,true);
+  RADIO.setProp(0x0100,bv);
+  BFO=bv;
+}
+
 function drawBand() {
   g.setColor(Yellow);
   g.setFont('6x8').setFontAlign(-1,-1).drawString("BAND: "+BANDNAME+"      ",18,30,true);
@@ -65,6 +82,7 @@ function drawBand() {
   g.drawString("MAX : "+HIGHBAND+"KHz   ",18,54,true);
   g.drawString("STEP: "+STEP+"KHz ",18,66,true);
   g.drawString("Bwid: "+bwidss[BWindex].toFixed(1)+"KHz ",18,78,true);
+  g.setFontAlign(0,-1).drawString(MOD,160,12,true);
 }
 
 function drawSignal(){
@@ -78,14 +96,16 @@ function drawBat(){
   g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("BAT: "+v.toFixed(1)+"V",248,100,true);
 }
 
-function drawAM(){
+function drawSSB(){
     g.setColor(Grey).fillRect(0,0,319,239);
     g.clearRect(10,10,310,110);
     g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("KHz",260,50);
     VOLDISP.draw();
+    ATTDISP.draw();
     BANDSEL.draw(true);
     for (var i=0;i<BUTTONS.length;i++) BUTTONS[i].draw();
     drawFreq();
+    setBFO(0);
     drawBand();
     drawSignal();
     drawBat();
@@ -99,6 +119,7 @@ function setBand() {
     HIGHBAND=bd.max;
     STEP=bd.step;
     FREQ=bd.freq;
+    MOD = bd.mod;
     CAP= (bd.name=="LW" || bd.name=="MW")?0:1;
   }
   drawBand();
@@ -109,7 +130,7 @@ function setBand() {
 }
 
 function setTune(f){
-  RADIO.tuneAM(f,CAP);
+  RADIO.tuneSSB(f,CAP,MOD=="USB");
   while(!RADIO.endTune());
   var r= RADIO.getTuneStatus();
   FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;
@@ -117,43 +138,30 @@ function setTune(f){
   drawSignal();
 }
 
-var SCANNER=null;
-
-function scan(up,n){
-  if (SCANNER) SCANNER=clearInterval(SCANNER);
-  if(BUTTONS[(n+1)%2].press){BUTTONS[(n+1)%2].reset();}
-  RADIO.seek(up,false);
-  SCANNER=setInterval(()=>{
-      if (!RADIO.endTune()) return;
-      if (SCANNER) SCANNER=clearInterval(SCANNER);
-      var r=RADIO.getTuneStatus();
-      FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;
-      drawFreq(); drawSignal();
-      BUTTONS[n].reset();
-   },100);
-}
-
 function initRADIO(){
     RADIO.reset();
-    RADIO.powerAM(true);
-    RADIO.setProp(0xFF00,0); //turn off debug see AN332 re noise
-    RADIO.setProp(0x3102,BWindex);
+    RADIO.powerSSB(false);
+    if(!RADIO.powerSSB(true)) return false;
+    RADIO.setProp(0x0101,SSB_MODE);
     RADIO.volume(VOL);
     setBand();
+    return true;
 }
 
-function setSelector(st,b1,b2){
+function setSelector(b,st,b1,b2,b3,b4){
+  if (!b) STATE=5; else STATE=st;
   STATE=st;
   BUTTONS[b1].reset();
   BUTTONS[b2].reset();
-  BANDSEL.draw(true);
-  if (STATE==2) setBand();
+  BUTTONS[b3].reset();
+  BUTTONS[b4].reset();
 }
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
-      if (STATE==1)
-         {FREQ+=(inc*STEP);
+      if (STATE==1){
+          if (BFO!=0) setBFO(0);
+          FREQ+=(inc*STEP);
           FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
           setTune(FREQ);
       } else if(STATE==0) {
@@ -161,7 +169,16 @@ function setControls(){
           VOL=VOL<0?0:VOL>63?63:VOL;
           VOLDISP.update(VOL);
           RADIO.volume(VOL);
-      } else {
+      } else if(STATE==3) {
+          BFO+=inc*10;
+          BFO=BFO<-990?-990:BFO>990?990:BFO;
+          setBFO(BFO);
+      } else if(STATE==4) {
+          ATT+=inc;
+          ATT=ATT<0?0:ATT>63?63:ATT;
+          ATTDISP.update(ATT);
+          RADIO.setAGC(AGC,ATT);
+      } else if (STATE==2) {
         BANDSEL.move(inc);
         if (BANDS.length!=0) setBand();
       }     
@@ -217,7 +234,7 @@ function toRADIO() {
   }
   delete KBD;
   setControls();
-  drawAM();
+  drawSSB();
 }
 
 var SCREEN = 0;
@@ -235,7 +252,9 @@ TC.swipeHandler = (dir) => {
 
 TC.on("swipe",TC.swipeHandler);
 
-initRADIO();
-drawAM();
-setControls();
+g.clear().setColor(-1).setFont("Vector",24).drawString("Loading SSB patch ...",40,100);
+if (initRADIO()){
+  drawSSB();
+  setControls();
+} else g.clear().setColor(-1).setFont("Vector",24).drawString("FAILED to load SSB patch",10,100);
 

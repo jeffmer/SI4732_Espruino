@@ -1,4 +1,7 @@
 //var RADIOI2C = new I2C();
+   //       var ret = 0;
+   //       while (ret==0) ret = RADIO.read(1)[0];
+   //       if (ret!=128) return false;
 I2C1.setup({scl:D22,sda:D21,bitrate:200000});
 
 var RADIO = {
@@ -45,7 +48,8 @@ var RADIO = {
     powerSSB:(b)=>{
       if (b) {
         RADIO.isFM=false;
-        RADIO.write([0x01,0x91,0x05]);  //AM patch analogue
+        RADIO.write([0x01,0xB1,0x05]);  //AM patch analogue
+        if (!RADIO.waitCTS()) return false;
         var nb = SSB.lenPatch();
         var next = 0;
         while(next<nb) {
@@ -56,9 +60,9 @@ var RADIO = {
       } else {
         RADIO.write(0x11);
       }
-      return RADIO.waitCTS();
+      RADIO.delayms(500);
+      return RADIO.read(1)[0]==128;
     },
-
     tune:(f)=>{
       if (!RADIO.waitCTS()) return;
       var cm = new Uint8Array(5);
@@ -124,6 +128,14 @@ var RADIO = {
       RADIO.write(cm);
       var res = RADIO.read(RADIO.isFM?8:6);
       return {status:res[0],valid:res[2],stereo:res[3]>>7,rssi:res[4],snr:res[5]};
+    },
+    getAGC:()=>{
+      if (!RADIO.waitCTS()) return;
+      var cm = new Uint8Array(1);
+      cm[0] = 0x47;
+      RADIO.write(cm);
+      var res = RADIO.read(3);
+      return res;
     },
     setAGC:(enable,val)=>{
       if (!RADIO.waitCTS()) return;

@@ -1,15 +1,11 @@
-const Grey = g.toColor(0.6,0.6,0.6);
-const Green = g.toColor(0,1,0);
-const Yellow = g.toColor(1,1,0);
-const Blue = g.toColor(0,0,1);
-
 eval(STOR.read("button.js"));
 eval(STOR.read("selector.js"));
+eval(STOR.read("bardisp.js"));
 
 var VOL=35;
-var OLDVOL=0;
-var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= BAND
+var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= BAND, 3 = BFO, 5 = DO Nothing
 var FREQ = 5450;
+var BFO = 0;
 var RSSI =0;
 var SNR =0;
 var BANDNAME ="LW";
@@ -19,21 +15,24 @@ var MOD="USB";
 var SSB_MODE=0x9001; //AFC disable, AVC enable, bandpass&cutoff, 2.2Khz BW
 var STEP = 9;
 var BWindex = 1;
-var CAP =0;
+var CAP =1;
 
 var buf = Graphics.createArrayBuffer(140,50,1,{msb:true});
 
 var BANDS = (STOR.readJSON("bands.json")||[]).filter((e)=>{return e.mod!="AM";});
 
 var BANDSEL  = new Selector(BANDS,220,120);
+
+var VOLDISP = new BarDisp("VOL:",45,100,VOL);
     
 var BUTTONS=[
     new Button("Step",80, 120, 60, 32, (b)=>{changeStep(b,0);}),
     new Button("BWid",80, 160, 60, 32, (b)=>{changeBW(b,1);}),
     new Button("Mute",80, 200, 60, 32, (b)=>{RADIO.mute(b);}),
-    new Button("Tune",10, 120, 60, 32, ()=>{setSelector(1,4,5);}),
-    new Button("Vol",10, 160, 60, 32, ()=>{setSelector(0,3,5);}),
-    new Button("Band",10, 200, 60, 32, ()=>{setSelector(2,3,4);})
+    new Button("Tune",10, 120, 60, 32, (b)=>{setSelector(b,1,4,5,6);}),
+    new Button("Vol",10, 160, 60, 32, (b)=>{setSelector(b,0,3,5,6);}),
+    new Button("Band",10, 200, 60, 32, (b)=>{setSelector(b,2,3,4,6);}),
+    new Button("BFO",150, 120, 60, 32, (b)=>{setSelector(b,3,3,4,5);}),
 ];
 
 var stepindex= 2;
@@ -50,8 +49,8 @@ const bwidss =[1.2,2.2,3,4,0.5,1];
 function changeBW(b,n){
   if (!b) return;
   BWindex = (BWindex+1)%6;
-  var pat = bwidss[BWindex]<2.5 ? n : 0x10 | n;
-  SSB_MODE = (SSB_MODE & 0xFF0) | pat;
+  var pat = bwidss[BWindex]<2.5 ? BWindex : 0x10 | BWindex;
+  SSB_MODE = (SSB_MODE & 0xFF00) | pat;
   RADIO.setProp(0x0101,SSB_MODE);
   g.setColor(-1).setFont('6x8').setFontAlign(-1,-1).drawString("Bwid: "+bwidss[BWindex].toFixed(1)+"KHz ",18,78,true);
   setTimeout(()=>{BUTTONS[n].reset();},200);
@@ -60,7 +59,13 @@ function changeBW(b,n){
 function drawFreq(){
   buf.clear();
   buf.setFont("Vector",42).setFontAlign(1,0).drawString((FREQ).toFixed(0),135,30);
-  g.setColor(STATE==1?Green:-1).drawImage(buf,120,20);
+  g.setColor(-1).drawImage(buf,120,20);
+}
+
+function setBFO(bv){
+  g.setColor(-1).setFont("6x8",2).setFontAlign(1,-1).drawString("   "+bv+" Hz",280,80,true);
+  RADIO.setProp(0x0100,bv);
+  BFO=bv;
 }
 
 function drawBand() {
@@ -84,26 +89,18 @@ function drawBat(){
   g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("BAT: "+v.toFixed(1)+"V",248,100,true);
 }
 
-function drawVolume(){
-  var v = VOL;
-  if (v>=OLDVOL) g.setColor(STATE==0?Green:Grey).fillRect(45,101,45+v,107);
-  if (v<OLDVOL) g.clearRect(45+v,101,108,107);
-  OLDVOL=v;
-}
-
 function drawSSB(){
     g.setColor(Grey).fillRect(0,0,319,239);
     g.clearRect(10,10,310,110);
     g.setColor(-1).setFont("Vector",20).setFontAlign(-1,0).drawString("KHz",260,50);
-    g.setColor(Yellow).setFont("6x8",1).setFontAlign(-1,-1).drawString("VOL:",18,100);
-    g.setColor(-1).drawRect(44,100,109,108);
+    VOLDISP.draw();
     BANDSEL.draw(true);
     for (var i=0;i<BUTTONS.length;i++) BUTTONS[i].draw();
     drawFreq();
+    setBFO(0);
     drawBand();
     drawSignal();
     drawBat();
-    drawVolume();
 }
 
 function setBand() {
@@ -135,33 +132,39 @@ function setTune(f){
 
 function initRADIO(){
     RADIO.reset();
-    RADIO.powerSSB(true);
+    RADIO.powerSSB(false);
+    if(!RADIO.powerSSB(true)) return false;
     RADIO.setProp(0x0101,SSB_MODE);
     RADIO.volume(VOL);
     setBand();
+    return true;
 }
 
-function setSelector(st,b1,b2){
+function setSelector(b,st,b1,b2,b3){
+  if (!b) STATE=5; else STATE=st;
   STATE=st;
   BUTTONS[b1].reset();
   BUTTONS[b2].reset();
-  BANDSEL.draw(true);
-  drawVolume();
-  if (STATE==2) setBand();
+  BUTTONS[b3].reset();
 }
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
-      if (STATE==1)
-         {FREQ+=(inc*STEP);
+      if (STATE==1){
+          if (BFO!=0) setBFO(0);
+          FREQ+=(inc*STEP);
           FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
           setTune(FREQ);
       } else if(STATE==0) {
           VOL+=inc;
           VOL=VOL<0?0:VOL>63?63:VOL;
-          drawVolume();
+          VOLDISP.update(VOL);
           RADIO.volume(VOL);
-      } else {
+      } else if(STATE==3) {
+          BFO+=inc*10;
+          BFO=BFO<-990?-990:BFO>990?990:BFO;
+          setBFO(BFO);
+      } else if (STATE==2) {
         BANDSEL.move(inc);
         if (BANDS.length!=0) setBand();
       }     
@@ -236,7 +239,8 @@ TC.swipeHandler = (dir) => {
 TC.on("swipe",TC.swipeHandler);
 
 g.clear().setColor(-1).setFont("Vector",24).drawString("Loading SSB patch ...",40,100);
-initRADIO();
-drawSSB();
-setControls();
+if (initRADIO()){
+  drawSSB();
+  setControls();
+} else g.clear().setColor(-1).setFont("Vector",24).drawString("FAILED to load SSB patch",10,100);
 
