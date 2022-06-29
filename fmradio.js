@@ -3,7 +3,7 @@ eval(STOR.read("selector.js"));
 eval(STOR.read("bardisp.js"));
 
 var VOL=45;
-var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= STATION
+var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= STATION, 5 = NOTHING
 var FREQ = 9320;
 var RSSI =0;
 var SNR =0;
@@ -26,9 +26,9 @@ var BUTTONS=[
     new Button("Scan+",80, 120, 60, 32, ()=>{scan(true,0);}),
     new Button("Scan-",80, 160, 60, 32, ()=>{scan(false,1);}),
     new Button("Mute",80, 200, 60, 32, (b)=>{RADIO.mute(b);}),
-    new Button("Tune",10, 120, 60, 32, ()=>{setSelector(1,4,5);}),
-    new Button("Vol",10, 160, 60, 32, ()=>{setSelector(0,3,5);}),
-    new Button("Pre",10, 200, 60, 32, ()=>{setSelector(2,3,4)}),
+    new Button("Tune",10, 120, 60, 32, (b)=>{setSelector(b,1,4,5);}),
+    new Button("Vol",10, 160, 60, 32, (b)=>{setSelector(b,0,3,5);}),
+    new Button("Pre",10, 200, 60, 32, (b)=>{setSelector(b,2,3,4)}),
     new Button("RDS",150, 120, 60, 32, (b)=>{if (b) rdsStart(); else rdsStop();}),
     new Button("Add",150,160,60,32,(b)=>{addStation(b)}),
     new Button("Del",150,200,60,32,(b)=>{delStation(b)})
@@ -116,13 +116,13 @@ function initRADIO(){
     RADIO.reset();
     RADIO.powerFM(true);
     RADIO.setProp(0xFF00,0); //turn off debug see AN332 re noise
-    RADIO.setProp(0x1800,127); // set to blend set to mono
-    RADIO.setProp(0x1801,127); // mono blend threshold - force mono
+    //RADIO.setProp(0x1800,127); // set to blend set to mono
+    //RADIO.setProp(0x1801,127); // mono blend threshold - force mono
     RADIO.volume(VOL);
 }
 
-function setSelector(st,b1,b2){
-  STATE=st;
+function setSelector(b,st,b1,b2){
+  if (b) STATE=st; else return;
   BUTTONS[b1].reset();
   BUTTONS[b2].reset();
   STATSEL.draw(STATE==2);
@@ -140,7 +140,7 @@ function setControls(){
           VOL=VOL<0?0:VOL>63?63:VOL;
           VOLDISP.update(VOL);
           RADIO.volume(VOL);
-      } else {
+      } else if (STATE==2) {
         STATSEL.move(inc);
         if (STATIONS.length!=0) setTune(STATSEL.freq());
       }     
