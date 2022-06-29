@@ -22,7 +22,7 @@ function watchD33(fn){
     global.D33STATE=false;
     global.D33POLL = setInterval(()=>{
         var pressed = (analogRead(D33)< 0.2); 
-        if (pressed && !global.D33STATE) fn();
+        if (fn && pressed && !global.D33STATE) fn();
         global.D33STATE=pressed;
     },200);
 }
