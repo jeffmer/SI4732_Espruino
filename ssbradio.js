@@ -16,6 +16,7 @@ Graphics.prototype.setFontDMMono = function(scale) {
 
 var VOL=35;
 var STATE=0;  //0 = VOLUME, 1 = FREQ, 2= BAND, 5 = DO Nothing
+var TUNEORSTEP = false;
 var TUNEDFREQ=0;   //Hz
 var FREQ = 0;          //x 10000 Hz
 var BFO = 0;
@@ -65,7 +66,7 @@ function changeStep(n){
   g.setColor(-1).setFont('6x8').setFontAlign(-1,-1).drawString("STEP: "+STEP+"Hz   ",18,78,true);
   g.clearRect(160,70,265,74);
   var x = 242 - (stepindex<2?stepindex:stepindex+1)*18;
-  g.setColor(-1).fillRect(x,70,x+16,74);
+  g.setColor(TUNEORSTEP?-1:Grey).fillRect(x,70,x+16,74);
 }
 
 const bwidss =[1.2,2.2,3,4,0.5,1];
@@ -170,10 +171,10 @@ function setSelector(b,st,b1,b2){
 }
 
 function setControls(){ 
-    watchD33();
+    watchD33(()=>{TUNEORSTEP=!TUNEORSTEP; changeStep(0);});
     ROTARY.handler = (inc) => {
       if (STATE==1){
-        if (D33STATE) {
+        if (TUNEORSTEP) {
           changeStep(inc);
         } else {
           TUNEDFREQ+=(inc*STEP);
