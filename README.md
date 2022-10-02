@@ -16,7 +16,7 @@ The FM radio application supports RDS and stations can be saved as presets in th
 
 ![](image/fmradio.jpg)
 
-A video clip of the FM radio can be seen [here](https://youtu.be/1rce91vy35w).
+A video clip of the FM radio can be seen [here](https://www.youtube.com/watch?v=Yk6XuBNn9mA).
 
 ## AM Radio
 
