@@ -6,7 +6,7 @@ These all-band (FM,LW,MW,SW with SSB) radios (see picture below) are available o
 
 There is an extensive well documented Arduino library for the SI4732 and a sketch which implements the firmware running on the pictured radio. The firmware can easily be updated from Arduino via the USB-C port at the rear of the radio. However, the combined library and sketch  is over 10,000 lines of C++ which makes it cumbersome to change so I had a go at an Espruino version. The Espruino implementation is not as responsive as the Arduino software, however, it permits rapid experimentation using the [Espruino IDE](https://www.espruino.com/ide/).
 
-The SI4732 essentially supports three separate radios, FM, AM (including SW) and SSB (via a patch).
+The SI4732 essentially supports three separate radio modes, FM, AM (including SW) and SSB (via a patch). The set of commands and properties supported by these three modes is not the same although there is overlap - for example SSB does not have a scan command. Consequently, to facilitate experimentation and to simplify interfaces, each of the three modes is supported by a different radio app invoked from the home screen shown below:
 
 ![](image/home_screen.jpg)
 
@@ -31,6 +31,13 @@ There is a short delay  - caused by the need to load the SSB patch into the SI47
 ![](image/ssbradio.jpg)
 
 The tuning increment can be changed to 10,000Hz, 1000Hz, 100Hz or 10Hz using the rotary controller button - see 1000Hz underline in screen shot. Tuning uses the SSB patch BFO property to minimise 'chuff' on tuning to a different frequency using the tune command.
+
+## Direct Frequency Input
+
+Each of the above three radio apps permits a user to directly input the desired frequency to tune to using the touch screen keypad shown below. This is accessed by swiping down on the screen.
+
+![](image/keys.jpg)
+
 
 ## Technical Challenges
 
