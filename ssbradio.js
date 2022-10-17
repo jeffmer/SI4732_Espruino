@@ -38,7 +38,7 @@ var BANDSEL  = new Selector(BANDS,220,120);
 var VOLDISP = new BarDisp("VOL:",45,100,VOL);
     
 var BUTTONS=[
-    new Button("U/L",80, 120, 60, 32, (b)=>{changeSideBand(b,0);}),
+    new Button("MOD",80, 120, 60, 32, (b)=>{changeSideBand(b,0);}),
     new Button("BWid",80, 160, 60, 32, (b)=>{changeBW(b,1);}),
     new Button("Mute",80, 200, 60, 32, (b)=>{RADIO.mute(b);}),
     new Button("Tune",10, 120, 60, 32, (b)=>{setSelector(b,1,4,5);}),
@@ -46,14 +46,21 @@ var BUTTONS=[
     new Button("Band",10, 200, 60, 32, (b)=>{setSelector(b,2,3,4);}),
 ];
 
+
+function setModulation(){
+  if (MOD=="SYN") SSB_MODE = SSB_MODE & 0x7fff;
+  else SSB_MODE = SSB_MODE | 0x8000;
+  RADIO.setProp(0x0101,SSB_MODE);
+}
+
 function changeSideBand(b,n){
   if (!b) return;
-  MOD = MOD=="USB"?"LSB":"USB";
+  MOD = (MOD=="USB")?"LSB":(MOD=="LSB")?"SYN":(MOD=="SYN")?"USB":"USB";
+  setModulation(); 
   g.setFont('6x8').setFontAlign(0,-1).drawString(MOD,160,12,true);
   setTune(TUNEDFREQ,true); //force tune to change side band
   setTimeout(()=>{BUTTONS[n].reset();},200);
 }
-
 
 var stepindex= 2;
 const steps =[10,100,1000,10000];
@@ -130,7 +137,8 @@ function setBand(fkhz) {
     HIGHBAND=bd.max;
     if (fkhz) TUNEDFREQ=fkhz*1000; else TUNEDFREQ=bd.freq*1000;
     MOD = bd.mod;
-    CAP= (bd.name=="LW" || bd.name=="MW")?0:1;
+    setModulation();
+    CAP= (bd.name=="LOW")?0:1;
   }
   drawBand();
   setTune(TUNEDFREQ);

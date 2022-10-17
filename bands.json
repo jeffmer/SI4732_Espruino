@@ -28,7 +28,8 @@
   {"name":"CB","mod":"AM","min":26200,"max":27990,"freq":27200,"step":1},
   {"name":"10M","mod":"USB","min":28000,"max":30000,"freq":28500,"step":1},
   {"name":"SW","mod":"AM","min":1730,"max":30000,"freq":15500,"step":5},
-  {"name":"SSB","mod":"USB","min":1730,"max":30000,"freq":18100,"step":1}
+  {"name":"SSB","mod":"USB","min":1730,"max":30000,"freq":18100,"step":1},
+  {"name":"LOW","mod":"SYN","min":153,"max":1701,"freq":198,"step":1}
 ]
 
 
