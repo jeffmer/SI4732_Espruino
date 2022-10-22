@@ -1,9 +1,10 @@
 function ST7789() {
     var LCD_WIDTH = 240;
     var LCD_HEIGHT = 135;
-    var XOFF = 0;
-    var YOFF = process.env.BOARD=="ROCK"?24:20;
+    var XOFF = 40;
+    var YOFF = 52;
     var INVERSE = 1;
+    var ROTATE = 5;
     var cmd = lcd_spi_unbuf.command;
 
     function dispinit(rst,fn) {
@@ -17,7 +18,7 @@ function ST7789() {
         cmd(0x11); //SLPOUT
         delayms(50);
         //MADCTL: Set Memory access control (directions), 1 arg: row addr/col addr, bottom to top refresh
-        cmd(0x36, 0x00);
+        cmd(0x36, ROTATE<<5 | 0x00);
         //COLMOD: Set color mode, 1 arg, no delay: 16-bit color
         cmd(0x3a, 0x05);
         //PORCTRL: Porch control
@@ -86,5 +87,12 @@ var brightness= function(v){
         analogWrite(D4,v,{freq:60});
 };
 
+/* Test Code
 brightness(1);
-var g = ST789V()
+var g = ST7789();
+g.setColor(1,0,0);
+g.fillRect(0,0,239,134);
+g.setColor(1,1,1);
+g.drawLine(0,0,239,134);
+g.drawLine(0,134,239,0);
+*/
