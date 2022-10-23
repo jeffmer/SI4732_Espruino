@@ -27,8 +27,8 @@ var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{if (b) STATE=4; else 
 var FREQDISP = new FreqDisp("MHz",100,20,80,28,FREQ,(b)=>{if (b) STATE=2; else STATE=0;});
 var SCANUP = new Button("Scan+",0,  83, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
 var SCANDOWN = new Button("Scan-",49, 83, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
-var ADDSTAT =  new Button("Add",  49,111, 44, 23,(b)=>{addStation(b)},12);
-var DELSTAT =  new Button("Del",  98,111, 44, 23,(b)=>{delStation(b)},12);
+var ADDSTAT =  new Button("Add",  49,111, 44, 23,(b)=>{addStation(b);},12);
+var DELSTAT =  new Button("Del",  98,111, 44, 23,(b)=>{delStation(b);},12);
 var ITEMS=[
     FREQDISP, SCANUP, SCANDOWN,
     new Button("Mute" ,98,83, 44, 23, (b)=>{RADIO.mute(b);},12),
@@ -60,7 +60,7 @@ function drawSignal(){
     g.setColor(Yellow);
     g.setFont('6x8').setFontAlign(-1,-1).drawString("RSSI: "+RSSI+"   ",0,0,true);
     g.setFontAlign(0,-1).drawString(STEREO==1?"Stereo":"      ",120,0,true);
-    g.setFontAlign(-1,-1).drawString("SNR: "+SNR+" ",196,0,true);
+    g.setFontAlign(-1,-1).drawString("SNR : "+SNR+" ",0,10,true);
 } 
 
 function setTune(f){
@@ -147,4 +147,5 @@ setInterval(()=>{
   var r = RADIO.getSQ();
   SNR=r.snr; RSSI=r.rssi; STEREO=r.stereo;
   drawSignal();
+  g.setFontAlign(-1,-1).drawString("BAT: "+getBattery().toFixed(1)+"V",180,0,true);
 },1000);
