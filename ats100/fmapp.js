@@ -6,7 +6,7 @@ eval(STOR.read("rds.js"));
 
 var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS
 var VOL=32;
-var BRIGHT=63;
+var BRIGHT=40;
 var FREQ=9580;
 var RSSI =0;
 var SNR =0;
@@ -24,7 +24,7 @@ var HIGHBAND = 10790;
 var STATSEL = new Selector(STATIONS,148,83,(b)=>{if (b) STATE=3; else STATE=0;});
 var VOLDISP = new BarDisp("Vol:",28,72,VOL,(b)=>{if (b) STATE=1; else STATE=0;});
 var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{if (b) STATE=4; else STATE=0;});
-var FREQDISP = new FreqDisp("MHz",100,20,80,28,FREQ,(b)=>{if (b) STATE=2; else STATE=0;});
+var FREQDISP = new FreqDisp("MHz",110,19,80,28,FREQ,(b)=>{if (b) STATE=2; else STATE=0;});
 var SCANUP = new Button("Scan+",0,  83, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
 var SCANDOWN = new Button("Scan-",49, 83, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
 var ADDSTAT =  new Button("Add",  49,111, 44, 23,(b)=>{addStation(b);},12);
@@ -138,8 +138,8 @@ function setControls(){
 }
 
 g.clear();
-ITEMS.forEach((i)=>{i.draw();});
-ITEMS[0].focus(true);
+for (var i=0;i<ITEMS.length;i++) 
+  ITEMS[i].focus(i==position);
 setControls();
 initRADIO();
 setTune(FREQ);

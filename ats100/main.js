@@ -1,7 +1,7 @@
 var STOR = require("Storage");
 eval(STOR.read("st7789v.js"));
 var g = ST7789();
-brightness(1);
+brightness(40/63);
 const Grey = g.toColor(0.8,0.8,0.8);
 const Green = g.toColor(0,0.7,0);
 const Yellow = g.toColor(1,1,0);

@@ -36,7 +36,7 @@ rdsbuf.setFont("6x8",1).setFontAlign(-1,-1);
 function drawMsg(msg){
   rdsbuf.clear();
   if (msg) msg= rdsbuf.drawString(rdsbuf.wrapString(msg, rdsbuf.getWidth()).join("\n"),0,0);
-  g.setColor(-1).drawImage(rdsbuf,0,50);
+  g.setColor(-1).drawImage(rdsbuf,0,51);
 }
 
 function decode(m){

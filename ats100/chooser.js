@@ -8,7 +8,6 @@ var SSBUTTON = new Button("SSB",120,70,50,30,()=>{load();},20);
 var OFFBUTTON = new Button("OFF",180,70,50,30,()=>{load();},20);
 
 var ITEMS=[FMBUTTON,AMBUTTON,SSBUTTON,OFFBUTTON];
-ITEMS.forEach((i)=>{i.draw();});
 
 var prevpos =3;
 var position=3;
@@ -26,4 +25,5 @@ BUTTON.on("change",(d)=>{if(d) ITEMS[position].toggle();});
 
 g.setColor(-1).setFont("6x8",1).setFontAlign(0,-1).drawString("Long touch to return to this screen.",120,110);
 
-
+for (var i=0;i<ITEMS.length;i++) 
+  ITEMS[i].focus(i==position);
