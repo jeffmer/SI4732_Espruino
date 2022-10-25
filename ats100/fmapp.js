@@ -27,14 +27,12 @@ var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{if (b) STATE=4; else 
 var FREQDISP = new FreqDisp("MHz",110,19,80,28,FREQ,(b)=>{if (b) STATE=2; else STATE=0;});
 var SCANUP = new Button("Scan+",0,  83, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
 var SCANDOWN = new Button("Scan-",49, 83, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
-var ADDSTAT =  new Button("Add",  49,111, 44, 23,(b)=>{addStation(b);},12);
+var ADDSTAT =  new Button("Add",  98,83, 44, 23,(b)=>{addStation(b);},12);
 var DELSTAT =  new Button("Del",  98,111, 44, 23,(b)=>{delStation(b);},12);
 var ITEMS=[
-    FREQDISP, SCANUP, SCANDOWN,
-    new Button("Mute" ,98,83, 44, 23, (b)=>{RADIO.mute(b);},12),
-    new Button("RDS",  0, 111, 44, 23, (b)=>{if (b) rdsStart(); else rdsStop();},12),
-    ADDSTAT, DELSTAT,
-    STATSEL,VOLDISP,BRIGHTDISP
+    FREQDISP, VOLDISP,BRIGHTDISP, SCANUP, SCANDOWN,  ADDSTAT, STATSEL, DELSTAT,
+    new Button("Mute" ,49,111, 44, 23, (b)=>{RADIO.mute(b);},12),
+    new Button("RDS",  0, 111, 44, 23, (b)=>{if (b) rdsStart(); else rdsStop();},12),  
 ]; 
 
 function addStation(b){
