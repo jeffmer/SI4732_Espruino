@@ -15,21 +15,24 @@ RADIO.reset();
 function createSwitch(pinA){
   pinMode(pinA,"input_pullup");
   var OBJ = {};
+  var lastpush;
   var TO;
-  var state = pinA.read();
   
-  function handler(){
-    var ns = pinA.read();
-    if (state!=ns){
-      if (TO) TO = clearTimeout(TO);
-      OBJ.emit("change",!ns);
-      state=ns;
-      if (!ns) TO = setTimeout(()=>{OBJ.emit("longpush");},1500); 
+  function handler(ns){
+    if (TO) TO = clearTimeout(TO);
+    if (!ns.state && (ns.time-lastpush)<0.5) 
+      OBJ.emit("doubleclick");
+    else 
+      OBJ.emit("change",!ns.state);
+    if(!ns.state) {
+      lastpush=ns.time;
+      TO = setTimeout(()=>{OBJ.emit("longpush");},1500); 
     }
   }
-  setWatch(handler,pinA,{repeat:true,edge:"both"});
+  setWatch(handler,pinA,{repeat:true,edge:"both",debounce:25});
   return OBJ;
 }
+
 var BUTTON = createSwitch(D2);
 function getBattery() {return 7.24 * analogRead(D35);}
 
