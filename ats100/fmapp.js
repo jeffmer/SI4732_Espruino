@@ -132,7 +132,7 @@ function setControls(){
         }     
     };
     ROTARY.on("change",ROTARY.handler);  
-    BUTTON.on("change",(d)=>{if(d) ITEMS[position].toggle();});
+    BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
 }
 
 g.clear();

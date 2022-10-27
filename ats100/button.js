@@ -19,24 +19,16 @@ class Button {
     this.focusd = b;
     this.draw();
   }
-  action(){
-    this.set();
-    setTimeout(()=>{
-      this.reset();
-       this.fn(this.str);
-    },200);
-  }
-  toggle(){
+  toggle(b){
+    if (b){
     this.press=!this.press;
     this.draw();
-    this.fn(this.press);
-  }
-  set(){
-    this.press=true;
-    this.draw();
+    } else {
+     this.fn(this.press);
+    }
   }
   reset(){
-      this.press=false;
-      this.draw();
-  }  
+    this.press=false;
+    this.draw();
+  }
 }

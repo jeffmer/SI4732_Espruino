@@ -21,7 +21,7 @@ function move(inc){
     }
 
 ROTARY.on("change",(inc)=>{move(inc);});  
-BUTTON.on("change",(d)=>{if(d) ITEMS[position].toggle();});
+BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
 
 g.setColor(-1).setFont("6x8",1).setFontAlign(0,-1).drawString("Long touch to return to this screen.",120,110);
 

@@ -40,9 +40,12 @@ class FreqDisp {
         this.focusd = b;
         this.draw();
     }
-    toggle(){
-        this.press=!this.press;
-        this.draw();
-        this.fn(this.press);
+    toggle(b){
+      if (b){
+      this.press=!this.press;
+      this.draw();
+      } else {
+       this.fn(this.press);
       }
+    }
 }

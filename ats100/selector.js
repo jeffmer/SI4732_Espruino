@@ -34,10 +34,13 @@ class Selector {
         this.focusd = b;
         this.draw();
     }
-    toggle(){
+    toggle(b){
+        if (b){
         this.press=!this.press;
         this.draw();
-        this.fn(this.press);
+        } else {
+         this.fn(this.press);
+        }
       }
     move(inc){
         if (this.list.length==0) return;
