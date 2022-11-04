@@ -21,10 +21,10 @@ var HIGHBAND = 10790;
     return 0;
   });
 
-var STATSEL = new Selector(STATIONS,148,83,(b)=>{if (b) STATE=3; else STATE=0;});
-var VOLDISP = new BarDisp("Vol:",28,72,VOL,(b)=>{if (b) STATE=1; else STATE=0;});
-var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{if (b) STATE=4; else STATE=0;});
-var FREQDISP = new FreqDisp("MHz",110,19,80,28,FREQ,(b)=>{if (b) STATE=2; else STATE=0;});
+var STATSEL = new Selector(STATIONS,148,83,(b)=>{STATE = b?3:0;});
+var VOLDISP = new BarDisp("Vol:",28,72,VOL,(b)=>{STATE = b?1:0;});
+var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{STATE = b?4:0;});
+var FREQDISP = new FreqDisp("MHz",110,19,80,28,FREQ,(b)=>{STATE = b?2:0;});
 var SCANUP = new Button("Scan+",0,  83, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
 var SCANDOWN = new Button("Scan-",49, 83, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
 var ADDSTAT =  new Button("Add",  98,83, 44, 23,(b)=>{addStation(b);},12);
@@ -117,7 +117,7 @@ function setControls(){
              FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
              setTune(FREQ);
         } else if(STATE==1) {
-            VOL+=inc;
+            VOL+=inc*4;
             VOL=VOL<0?0:VOL>63?63:VOL;
             VOLDISP.update(VOL);
             RADIO.volume(VOL);
