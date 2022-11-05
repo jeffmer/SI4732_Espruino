@@ -12,7 +12,8 @@ class Button {
   draw() {
       g.setColor(this.press?Green:Blue).fillRect(this.x1,this.y1,this.x2,this.y2);
       if (this.focusd)  g.setColor(-1). drawRect(this.x1,this.y1,this.x2,this.y2);
-      g.setColor(-1).setFont("Vector",this.fz).setFontAlign(0,0).drawString(this.str,this.x1+this.w/2,this.y1+this.h/2);
+      if (this.fz<12) g.setFont("6x8"); else g.setFont("Vector",this.fz);
+      g.setColor(-1).setFontAlign(0,0).drawString(this.str,this.x1+this.w/2,this.y1+this.h/2);
     return this;
   }
   focus(b){

@@ -29,13 +29,14 @@ class FreqDisp {
         this.buf.clear();
         this.buf.setFont("DSEG7ClassicMiniBold").setFontAlign(1,-1).drawString((f).toFixed(this.decpoint),this.w-1,0);
         if (this.decpoint>0) this.buf.fillRect(this.w-25,25,this.w-23*this.decpoint,27);
-        g.setColor(this.press?-1:Cyan).drawImage(this.buf,this.x,this.y);
+        g.setBgColor(this.focusd?DarkGrey:0).setColor(this.press?-1:Cyan).drawImage(this.buf,this.x,this.y);
+        g.setBgColor(0);
       }
 
     draw(){
         g.setColor(this.press?-1:Cyan).setFont("Vector",14).setFontAlign(-1,1).drawString(this.str,this.x+this.w,this.y+this.fz-4);
         this.update(this.f);
-        g.setColor(this.focusd?Cyan:0).drawLine(this.x,this.y+this.fz+2,this.x+this.w,this.y+this.fz+2);
+        //g.setColor(this.focusd?Cyan:0).drawLine(this.x,this.y+this.fz+2,this.x+this.w,this.y+this.fz+2);
     }
 
     focus(b){

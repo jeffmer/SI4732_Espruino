@@ -20,15 +20,15 @@ var CAP =0;
 var BANDS = (STOR.readJSON("bands.json")||[]).filter((e)=>{return e.mod=="AM";});
 
 var BANDSEL = new Selector(BANDS,148,83,(b)=>{STATE = b?3:0;});
-var VOLDISP = new BarDisp("Vol:",28,72,VOL,(b)=>{STATE = b?1:0;});
-var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{STATE = b?4:0;});
-var FREQDISP = new FreqDisp("KHz",95,19,115,28,0,FREQ,(b)=>{STATE = b?2:0;});
-var SCANUP = new Button("Scan+",0,  83, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
-var SCANDOWN = new Button("Scan-",0, 111, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
-var STEPSET =  new Button("Step",  49,83, 44, 23,(b)=>{changeStep(b);},12);
-var BWSET =  new Button("BWid",  49,111, 44, 23,(b)=>{changeBW(b);},12);
+var VOLDISP = new BarDisp("Vol:",28,62,VOL,(b)=>{STATE = b?1:0;});
+var BRIGHTDISP = new BarDisp("BL :",28,72,BRIGHT,(b)=>{STATE = b?4:0;});
+var FREQDISP = new FreqDisp("KHz",50,19,115,28,0,FREQ,(b)=>{STATE = b?2:0;});
+var SCANUP = new Button("Scan+",0,  111, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
+var SCANDOWN = new Button("Scan-",49, 111, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
+var STEPSET =  new Button("9",  0,94, 44, 12,(b)=>{changeStep(b);},8);
+var BWSET =  new Button("6.0",  49,94, 44, 12,(b)=>{changeBW(b);},8);
 var ITEMS=[
-    FREQDISP, VOLDISP,BRIGHTDISP, BANDSEL,SCANUP, SCANDOWN,  STEPSET, BWSET,
+    FREQDISP, VOLDISP,BRIGHTDISP, STEPSET, BWSET, BANDSEL,SCANUP, SCANDOWN,  
     new Button("Mute" ,98,111, 44, 23, (b)=>{RADIO.mute(b);},12),
 ]; 
     
@@ -38,7 +38,7 @@ function changeStep(b){
   if (!b) return;
   stepindex = (stepindex+1)%4;
   STEP=steps[stepindex];
-  g.setColor(-1).setFont('6x8').setFontAlign(-1,-1).drawString("STEP: "+STEP+"KHz ",0,20,true);
+  STEPSET.str = STEP.toString();
   STEPSET.reset();
 }
 
@@ -47,23 +47,21 @@ function changeBW(b,n){
   if (!b) return;
   BWindex = (BWindex+1)%7;
   RADIO.setProp(0x3102,BWindex);
-  g.setColor(-1).setFont('6x8').setFontAlign(-1,-1).drawString("Bwid: "+bwidss[BWindex].toFixed(1)+"KHz ",0,30,true);
+  BWSET.str = bwidss[BWindex].toFixed(1);
   BWSET.reset();
 }
 
 function drawBand() {
-  g.setColor(Yellow);
-  g.setFont('6x8').setFontAlign(-1,-1).drawString("BAND: "+BANDNAME+"    ",0,40,true);
-  g.drawString("MIN : "+LOWBAND+"KHz   ",0,50,true);
-  g.drawString("MAX : "+HIGHBAND+"KHz   ",0,60,true);
-  g.drawString("STEP: "+STEP+"KHz ",0,20,true);
-  g.drawString("Bwid: "+bwidss[BWindex].toFixed(1)+"KHz ",0,30,true);
+  g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1);
+  g.drawString("MIN: "+LOWBAND+"KHz   ",148,62,true);
+  g.drawString("MAX: "+HIGHBAND+"KHz   ",148,72,true);
+  STEPSET.str = STEP.toString(); STEPSET.draw();
 }
 
 function drawSignal(){
   g.setColor(Yellow);
   g.setFont('6x8').setFontAlign(-1,-1).drawString("RSSI: "+RSSI+"   ",0,0,true);
-  g.setFontAlign(-1,-1).drawString("SNR : "+SNR+" ",0,10,true);
+  g.setFontAlign(-1,-1).drawString("SNR : "+SNR+" ",95,0,true);
 } 
 
 
@@ -159,6 +157,7 @@ function setControls(){
 g.clear();
 for (var i=0;i<ITEMS.length;i++) 
   ITEMS[i].focus(i==position);
+g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("Step",0,83).drawString("BWid",49,83);
 setControls();
 initRADIO();
 setTune(FREQ);
