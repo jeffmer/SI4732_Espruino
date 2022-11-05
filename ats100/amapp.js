@@ -1,0 +1,170 @@
+eval(STOR.read("selector.js"));
+eval(STOR.read("button.js"));
+eval(STOR.read("bardisp.js"));
+eval(STOR.read("freqdisp.js"));
+
+var VOL=32;
+var BRIGHT=40;
+var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS
+var FREQ = 198;
+var RSSI =0;
+var SNR =0;
+var BANDNAME ="LW";
+var LOWBAND = 130;
+var HIGHBAND = 279;
+var STEP = 9;
+var BWindex = 1;
+var CAP =0;
+
+
+var BANDS = (STOR.readJSON("bands.json")||[]).filter((e)=>{return e.mod=="AM";});
+
+var BANDSEL = new Selector(BANDS,148,83,(b)=>{STATE = b?3:0;});
+var VOLDISP = new BarDisp("Vol:",28,72,VOL,(b)=>{STATE = b?1:0;});
+var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{STATE = b?4:0;});
+var FREQDISP = new FreqDisp("KHz",95,19,115,28,0,FREQ,(b)=>{STATE = b?2:0;});
+var SCANUP = new Button("Scan+",0,  83, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
+var SCANDOWN = new Button("Scan-",0, 111, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
+var STEPSET =  new Button("Step",  49,83, 44, 23,(b)=>{changeStep(b);},12);
+var BWSET =  new Button("BWid",  49,111, 44, 23,(b)=>{changeBW(b);},12);
+var ITEMS=[
+    FREQDISP, VOLDISP,BRIGHTDISP, BANDSEL,SCANUP, SCANDOWN,  STEPSET, BWSET,
+    new Button("Mute" ,98,111, 44, 23, (b)=>{RADIO.mute(b);},12),
+]; 
+    
+var stepindex= 2;
+const steps =[1,5,9,10];
+function changeStep(b){
+  if (!b) return;
+  stepindex = (stepindex+1)%4;
+  STEP=steps[stepindex];
+  g.setColor(-1).setFont('6x8').setFontAlign(-1,-1).drawString("STEP: "+STEP+"KHz ",0,20,true);
+  STEPSET.reset();
+}
+
+const bwidss =[6,4,3,2,1,1.8,2.5];
+function changeBW(b,n){
+  if (!b) return;
+  BWindex = (BWindex+1)%7;
+  RADIO.setProp(0x3102,BWindex);
+  g.setColor(-1).setFont('6x8').setFontAlign(-1,-1).drawString("Bwid: "+bwidss[BWindex].toFixed(1)+"KHz ",0,30,true);
+  BWSET.reset();
+}
+
+function drawBand() {
+  g.setColor(Yellow);
+  g.setFont('6x8').setFontAlign(-1,-1).drawString("BAND: "+BANDNAME+"    ",0,40,true);
+  g.drawString("MIN : "+LOWBAND+"KHz   ",0,50,true);
+  g.drawString("MAX : "+HIGHBAND+"KHz   ",0,60,true);
+  g.drawString("STEP: "+STEP+"KHz ",0,20,true);
+  g.drawString("Bwid: "+bwidss[BWindex].toFixed(1)+"KHz ",0,30,true);
+}
+
+function drawSignal(){
+  g.setColor(Yellow);
+  g.setFont('6x8').setFontAlign(-1,-1).drawString("RSSI: "+RSSI+"   ",0,0,true);
+  g.setFontAlign(-1,-1).drawString("SNR : "+SNR+" ",0,10,true);
+} 
+
+
+function setBand(f) {
+  if (BANDS.length!=0) {
+    var bd = BANDSEL.selected();
+    BANDNAME=bd.name;
+    LOWBAND =bd.min;
+    HIGHBAND=bd.max;
+    STEP=bd.step;
+    if (f) FREQ=f; else FREQ=bd.freq;
+    CAP= (bd.name=="LW" || bd.name=="MW")?0:1;
+  }
+  drawBand();
+  RADIO.setProp(0x3400,LOWBAND);
+  RADIO.setProp(0x3401,HIGHBAND);
+  RADIO.setProp(0x3402,STEP);
+  setTune(FREQ);
+}
+
+function setTune(f){
+  RADIO.tuneAM(f,CAP);
+  while(!RADIO.endTune());
+  var r= RADIO.getTuneStatus();
+  FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;
+  FREQDISP.update(FREQ);
+  drawSignal();
+}
+
+var SCANNER=null;
+  
+function scan(up,thisone,other){
+  if (SCANNER) SCANNER=clearInterval(SCANNER);
+  if(other.press){other.reset();}
+  RADIO.seek(up,false);
+  SCANNER=setInterval(()=>{
+      if (!RADIO.endTune()) return;
+      if (SCANNER) SCANNER=clearInterval(SCANNER);
+      var r=RADIO.getTuneStatus();
+      FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;
+      FREQDISP.update(FREQ); drawSignal();
+      thisone.reset();
+   },100);
+}
+
+function initRADIO(){
+    RADIO.reset();
+    RADIO.powerAM(true);
+    RADIO.setProp(0xFF00,0); //turn off debug see AN332 re noise
+    RADIO.setProp(0x3102,BWindex);
+    RADIO.volume(VOL);
+    setBand();
+}
+
+var prevpos =0;
+var position=0;
+
+function move(inc){
+        function mod(a,n) {return a>=n?a-n:a<0?a+n:a;}
+        position=mod(position+inc,ITEMS.length);
+        ITEMS[prevpos].focus(false);
+        ITEMS[position].focus(true);
+        prevpos=position;
+    }
+
+function setControls(){ 
+    ROTARY.handler = (inc) => {
+        if (STATE==0) {
+           move(inc);
+        } else if (STATE==2){
+             FREQ+=(inc*STEP);
+             FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
+             setTune(FREQ);
+        } else if(STATE==1) {
+            VOL+=inc*4;
+            VOL=VOL<0?0:VOL>63?63:VOL;
+            VOLDISP.update(VOL);
+            RADIO.volume(VOL);
+        } else if(STATE==4) {
+            BRIGHT+=inc*4;
+            BRIGHT=BRIGHT<0?0:BRIGHT>63?63:BRIGHT;
+            BRIGHTDISP.update(BRIGHT);
+            brightness(BRIGHT/63);
+        } else if (STATE==3) {
+          BANDSEL.move(inc);
+          if (BANDS.length!=0) setBand();
+        }     
+    };
+    ROTARY.on("change",ROTARY.handler);  
+    BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
+}
+
+g.clear();
+for (var i=0;i<ITEMS.length;i++) 
+  ITEMS[i].focus(i==position);
+setControls();
+initRADIO();
+setTune(FREQ);
+setInterval(()=>{
+  var r = RADIO.getSQ();
+  SNR=r.snr; RSSI=r.rssi; STEREO=r.stereo;
+  drawSignal();
+  g.setFontAlign(-1,-1).drawString("BAT: "+getBattery().toFixed(1)+"V",180,0,true);
+},1000);
