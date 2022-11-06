@@ -22,7 +22,7 @@ var BANDS = (STOR.readJSON("bands.json")||[]).filter((e)=>{return e.mod=="AM";})
 var BANDSEL = new Selector(BANDS,148,83,(b)=>{STATE = b?3:0;});
 var VOLDISP = new BarDisp("Vol:",28,62,VOL,(b)=>{STATE = b?1:0;});
 var BRIGHTDISP = new BarDisp("BL :",28,72,BRIGHT,(b)=>{STATE = b?4:0;});
-var FREQDISP = new FreqDisp("KHz",50,19,115,28,0,FREQ,(b)=>{STATE = b?2:0;});
+var FREQDISP = new FreqDisp("KHz",50,19,115,28,0,5,FREQ,(b)=>{STATE = b?2:0;},(f)=>{findBand(f);});
 var SCANUP = new Button("Scan+",0,  111, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
 var SCANDOWN = new Button("Scan-",49, 111, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
 var STEPSET =  new Button("9",  0,94, 44, 12,(b)=>{changeStep(b);},8);
@@ -82,6 +82,15 @@ function setBand(f) {
   setTune(FREQ);
 }
 
+function findBand(f){
+    var bi = BANDS.findIndex((e)=>{return f<=e.max && f>=e.min;});
+    if (bi>=0) {
+      BANDSEL.pos=bi;
+      BANDSEL.draw(true);
+      setBand(f);
+    }
+}
+
 function setTune(f){
   RADIO.tuneAM(f,CAP);
   while(!RADIO.endTune());
@@ -129,7 +138,9 @@ function move(inc){
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
-        if (STATE==0) {
+        if (FREQDISP.edit) 
+          FREQDISP.adjust(inc);
+         else if (STATE==0) {
            move(inc);
         } else if (STATE==2){
              FREQ+=(inc*STEP);
@@ -152,6 +163,7 @@ function setControls(){
     };
     ROTARY.on("change",ROTARY.handler);  
     BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
+    BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 
 g.clear();

@@ -109,12 +109,4 @@ class FreqDisp {
 
 }
 
-/*
-// Test Code 
-g.clear();
-var FREQDISP = new FreqDisp("MHz",110,19,80,28,1,4,9580/100,(b)=>{});
-FREQDISP.draw();
-ROTARY.on("change",(inc)=>{FREQDISP.adjust(inc);});  
-BUTTON.on("change",(b)=>{FREQDISP.toggle(b);});
-BUTTON.on("doubleclick",()=>{FREQDISP.onDclick();});
-*/
+
