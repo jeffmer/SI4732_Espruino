@@ -24,7 +24,7 @@ var HIGHBAND = 10790;
 var STATSEL = new Selector(STATIONS,148,83,(b)=>{STATE = b?3:0;});
 var VOLDISP = new BarDisp("Vol:",28,72,VOL,(b)=>{STATE = b?1:0;});
 var BRIGHTDISP = new BarDisp("Bright:",170,72,BRIGHT,(b)=>{STATE = b?4:0;});
-var FREQDISP = new FreqDisp("MHz",110,19,80,28,1,FREQ/100,(b)=>{STATE = b?2:0;});
+var FREQDISP = new FreqDisp("MHz",110,19,92,28,1,4,FREQ/10,(b)=>{STATE = b?2:0;},(f)=>{setTune(f*10);});
 var SCANUP = new Button("Scan+",0,  83, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
 var SCANDOWN = new Button("Scan-",49, 83, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
 var ADDSTAT =  new Button("Add",  98,83, 44, 23,(b)=>{addStation(b);},12);
@@ -62,12 +62,13 @@ function drawSignal(){
 } 
 
 function setTune(f){
+    f = f<LOWBAND?LOWBAND:f>HIGHBAND?HIGHBAND:f;
     RADIO.tune(f);
     rdsClear();
     while(!RADIO.endTune());
     var r= RADIO.getTuneStatus();
     FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;
-    FREQDISP.update(FREQ/100);
+    FREQDISP.update(FREQ/10);
     drawSignal();
   }
   
@@ -110,11 +111,12 @@ function move(inc){
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
-        if (STATE==0) {
+        if (FREQDISP.edit) 
+            FREQDISP.adjust(inc);
+        else if (STATE==0) {
            move(inc);
         } else if (STATE==2){
              FREQ+=(inc*10);
-             FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
              setTune(FREQ);
         } else if(STATE==1) {
             VOL+=inc*4;
@@ -133,6 +135,7 @@ function setControls(){
     };
     ROTARY.on("change",ROTARY.handler);  
     BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
+    BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 
 g.clear();

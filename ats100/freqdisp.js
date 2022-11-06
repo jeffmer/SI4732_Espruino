@@ -7,27 +7,39 @@ Graphics.prototype.setFontDSEG7ClassicMiniBold = function(scale) {
     28+(scale<<8)+(1<<16)
   );
   return this;
-}
-
-
+};
 
 class FreqDisp {
-    constructor(str,x,y,w,fz,d,f,fn){
+    constructor(str,x,y,w,fz,d,nd,f,fn,fn2){
       this.x=x; this.y=y; this.w = w; this.fz = fz;
       this.decpoint = d;
       this.str=str; 
       this.f=f;
       this.press=false;
       this.focusd = false;
-      this.press = false;
+      this.edit = false;
+      this.editDigit=false;
+      this.ndigits=nd;
+      this.digits = new Array(this.ndigits);
+      this.curd = this.ndigits-1;
       this.fn = fn;
-      this.buf = Graphics.createArrayBuffer(w,fz+2,1,{msb:true});
+      this.fn2 = fn2;
+      this.buf = Graphics.createArrayBuffer(w,fz+4,1,{msb:true});
     }
 
     update(f){
         this.f=f;
         this.buf.clear();
-        this.buf.setFont("DSEG7ClassicMiniBold").setFontAlign(1,-1).drawString((f).toFixed(this.decpoint),this.w-1,0);
+        if (this.edit){
+          var lxd = this.w-24-23*this.curd;
+          this.buf.drawRect(lxd<0?0:lxd,0,lxd+23,this.fz+3);
+          for (var i = 0; i<this.ndigits; ++i) {
+              var lx = this.w-24-23*i;
+              this.buf.setFont("DSEG7ClassicMiniBold").setFontAlign(-1,-1).drawString(this.digits[i].toString(),lx+1,2);
+          }
+        } else {
+          this.buf.setFont("DSEG7ClassicMiniBold").setFontAlign(1,-1).drawString((this.f).toString(),this.w-1,2);
+        }
         if (this.decpoint>0) this.buf.fillRect(this.w-25,25,this.w-23*this.decpoint,27);
         g.setBgColor(this.focusd?DarkGrey:0).setColor(this.press?-1:Cyan).drawImage(this.buf,this.x,this.y);
         g.setBgColor(0);
@@ -36,7 +48,6 @@ class FreqDisp {
     draw(){
         g.setColor(this.press?-1:Cyan).setFont("Vector",14).setFontAlign(-1,1).drawString(this.str,this.x+this.w,this.y+this.fz-4);
         this.update(this.f);
-        //g.setColor(this.focusd?Cyan:0).drawLine(this.x,this.y+this.fz+2,this.x+this.w,this.y+this.fz+2);
     }
 
     focus(b){
@@ -46,9 +57,64 @@ class FreqDisp {
     toggle(b){
       if (b){
       this.press=!this.press;
+      this.editDigit = !this.editDigit;
       this.draw();
       } else {
-       this.fn(this.press);
+       if (!this.edit) this.fn(this.press);
       }
     }
+
+    startEdit(){
+      this.edit=true;
+      for (var i=0; i<this.ndigits;++i) this.digits[i]=0;
+      this.curd=this.ndigits-1;
+      var ac = this.f;
+      var d = 0;
+      while (ac>=1) {
+        this.digits[d]= ac % 10;
+        ac = (ac-this.digits[d])/10;
+        ++d;
+      }
+      this.draw();
+    }
+
+    endEdit(){
+      this.edit=!true;
+      var res = 0;
+      for (var i=this.ndigits-1; i>=0;--i){
+         res = res*10 + this.digits[i];
+      }
+      this.f = res;
+      this.draw();
+    }
+
+    onDclick(){
+      if (!this.edit)
+         this.startEdit();
+      else {
+         this.endEdit();
+         this.fn2(this.f);
+      }
+    }
+
+    adjust(inc){
+      function mod(a,n) {return a>=n?a-n:a<0?a+n:a;}
+      if (!this.editDigit){
+        this.curd=mod(this.curd+inc,this.ndigits);
+      } else {
+        this.digits[this.curd]=mod(this.digits[this.curd]+inc,10);
+      }
+      this.draw();
+    }
+
 }
+
+/*
+// Test Code 
+g.clear();
+var FREQDISP = new FreqDisp("MHz",110,19,80,28,1,4,9580/100,(b)=>{});
+FREQDISP.draw();
+ROTARY.on("change",(inc)=>{FREQDISP.adjust(inc);});  
+BUTTON.on("change",(b)=>{FREQDISP.toggle(b);});
+BUTTON.on("doubleclick",()=>{FREQDISP.onDclick();});
+*/
