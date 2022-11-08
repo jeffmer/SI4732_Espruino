@@ -2,10 +2,11 @@ eval(STOR.read("selector.js"));
 eval(STOR.read("button.js"));
 eval(STOR.read("bardisp.js"));
 eval(STOR.read("freqdisp.js"));
+eval(STOR.read("stepdisp.js"));
 
 var VOL=32;
 var BRIGHT=40;
-var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS
+var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS, 5= STEPSET
 var TUNEORSTEP = false;
 var TUNEDFREQ=3303000;   //Hz
 var FREQ = 0;      //x 10000 Hz
@@ -27,10 +28,11 @@ var BANDSEL = new Selector(BANDS,148,83,(b)=>{STATE = b?3:0;});
 var VOLDISP = new BarDisp("Vol:",28,83,VOL,(b)=>{STATE = b?1:0;});
 var BRIGHTDISP = new BarDisp("BL :",28,93,BRIGHT,(b)=>{STATE = b?4:0;});
 var FREQDISP = new FreqDisp("KHz",20,19,161,28,2,7,TUNEDFREQ/10,(b)=>{STATE = b?2:0;},(f)=>{findBand(f/100);});
+var STEPDISP = new StepDisp(90,52,4,(b)=>{STATE = b?5:0;});
 var MODSET =  new Button(MOD,0,111,44,23,(b)=>{changeSideBand(b);},12);
 var BWSET =  new Button(MOD,49,111,44,23,(b)=>{changeBW(b);},12);
 var MUTE = new Button("Mute" ,98,111, 44, 23, (b)=>{RADIO.mute(b);},12);
-var ITEMS=[FREQDISP, VOLDISP,BRIGHTDISP, MODSET, BWSET, MUTE,BANDSEL]; 
+var ITEMS=[FREQDISP, STEPDISP, VOLDISP,BRIGHTDISP, MODSET, BWSET, MUTE,BANDSEL]; 
     
 function setModulation(){
   if (MOD=="SYN") SSB_MODE = SSB_MODE & 0x7fff;
@@ -156,7 +158,10 @@ function setControls(){
         } else if (STATE==3) {
           BANDSEL.move(inc);
           if (BANDS.length!=0) setBand();
-        }     
+        } else if (STATE==5){
+          STEPDISP.move(inc);
+          STEP=STEPDISP.step();
+        }    
     };
     ROTARY.on("change",ROTARY.handler);  
     BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
