@@ -18,7 +18,7 @@ var HIGHBAND = 5500;
 var MOD="USB";
 var SSB_MODE=0x9001; //AFC disable, AVC enable, bandpass&cutoff, 2.2Khz BW
 var STEP = 1000;
-var BWindex = 1;
+var BWindex = 3;
 var CAP =1;
 
 
@@ -30,7 +30,7 @@ var BRIGHTDISP = new BarDisp("BL :",28,93,BRIGHT,(b)=>{STATE = b?4:0;});
 var FREQDISP = new FreqDisp("KHz",20,19,161,28,2,7,TUNEDFREQ/10,(b)=>{STATE = b?2:0;},(f)=>{findBand(f/100);});
 var STEPDISP = new StepDisp(90,52,4,(b)=>{STATE = b?5:0;});
 var MODSET =  new Button(MOD,0,111,44,23,(b)=>{changeSideBand(b);},12);
-var BWSET =  new Button(MOD,49,111,44,23,(b)=>{changeBW(b);},12);
+var BWSET =  new Button("4.0",49,111,44,23,(b)=>{changeBW(b);},12);
 var MUTE = new Button("Mute" ,98,111, 44, 23, (b)=>{RADIO.mute(b);},12);
 var ITEMS=[FREQDISP, STEPDISP, VOLDISP,BRIGHTDISP, MODSET, BWSET, MUTE,BANDSEL]; 
     
