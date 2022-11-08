@@ -4,7 +4,7 @@ g.setColor(-1).setFont("Vector",18).drawString("Espruino Radio",70,30);
 eval(STOR.read("button.js"));
 var FMBUTTON = new Button("FM",0,70,50,30,()=>{load("fmapp.js");},20);
 var AMBUTTON = new Button("AM",60,70,50,30,()=>{load("amapp.js");},20);
-var SSBUTTON = new Button("SSB",120,70,50,30,()=>{load();},20);
+var SSBUTTON = new Button("SSB",120,70,50,30,()=>{load("ssbapp.js");},20);
 var OFFBUTTON = new Button("OFF",180,70,50,30,()=>{load();},20);
 
 var ITEMS=[FMBUTTON,AMBUTTON,SSBUTTON,OFFBUTTON];

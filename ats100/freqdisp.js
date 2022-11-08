@@ -40,7 +40,10 @@ class FreqDisp {
         } else {
           this.buf.setFont("DSEG7ClassicMiniBold").setFontAlign(1,-1).drawString((this.f).toString(),this.w-1,2);
         }
-        if (this.decpoint>0) this.buf.fillRect(this.w-25,25,this.w-23*this.decpoint,27);
+        if (this.decpoint>0) {
+          var dx = this.w-2-23*this.decpoint;
+          this.buf.fillRect(dx,25,dx+2,27);
+        }
         g.setBgColor(this.focusd?DarkGrey:0).setColor(this.press?-1:Cyan).drawImage(this.buf,this.x,this.y);
         g.setBgColor(0);
       }
