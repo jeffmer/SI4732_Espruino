@@ -54,9 +54,9 @@ const steps =[10,100,1000,10000];
 
 
 const bwidss =[1.2,2.2,3,4,0.5,1];
-function changeBW(b,n){
+function changeBW(b,index){
   if (!b) return;
-  BWindex = (BWindex+1)%6;
+  if (index) BWindex=index; else BWindex = (BWindex+1)%6;
   var pat = bwidss[BWindex]<2.5 ? BWindex : 0x10 | BWindex;
   SSB_MODE = (SSB_MODE & 0xFF00) | pat;
   RADIO.setProp(0x0101,SSB_MODE);
@@ -168,6 +168,25 @@ function setControls(){
     BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 
+var s;
+
+function restoreState(){
+   s = STOR.readJSON("ssbstate.json",1)||{frequency:5505, volume:32, bright:40, bandwidth:3};
+   VOL=s.volume; VOLDISP.update(VOL); RADIO.volume(VOL);
+   BRIGHT=s.bright; BRIGHTDISP.update(BRIGHT); brightness(BRIGHT/63);
+   changeBW(true,s.bandwidth);
+   findBand(s.frequency);
+}
+
+function saveState(){
+  s.frequency=TUNEDFREQ/1000;
+  s.volume=VOL;
+  s.bright=BRIGHT;
+  s.bandwidth=BWindex;
+  STOR.writeJSON("ssbstate.json",s);
+}
+
+E.on("kill",saveState);
 
 g.clear().setColor(-1).setFont("Vector",18).drawString("Loading SSB patch ...",10,70);
 if (initRADIO()){
@@ -176,7 +195,7 @@ if (initRADIO()){
     ITEMS[i].focus(i==position);
   g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("MOD",0,102).drawString("BWid",49,102);
   setControls();
-  setBand();
+  restoreState();
   setInterval(()=>{
     var r = RADIO.getSQ();
     SNR=r.snr; RSSI=r.rssi; STEREO=r.stereo;

@@ -138,12 +138,39 @@ function setControls(){
     BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 
+var s;
+
+function findStation(f){
+  var bi = STATIONS.findIndex((e)=>{return f==e.freq;});
+  if (bi>=0) {
+    STATSEL.pos=bi;
+    STATSEL.draw();
+  }
+  setTune(f);
+}
+
+function restoreState(){
+   s = STOR.readJSON("fmstate.json",1)||{frequency:9540, volume:32, bright:40};
+   VOL=s.volume; VOLDISP.update(VOL); RADIO.volume(VOL);
+   BRIGHT=s.bright; BRIGHTDISP.update(BRIGHT); brightness(BRIGHT/63);
+   findStation(s.frequency);
+}
+
+function saveState(){
+  s.frequency=FREQ;
+  s.volume=VOL;
+  s.bright=BRIGHT;
+  STOR.writeJSON("fmstate.json",s);
+}
+
+E.on("kill",saveState);
+
 g.clear();
 for (var i=0;i<ITEMS.length;i++) 
   ITEMS[i].focus(i==position);
 setControls();
 initRADIO();
-setTune(FREQ);
+restoreState();
 setInterval(()=>{
   var r = RADIO.getSQ();
   SNR=r.snr; RSSI=r.rssi; STEREO=r.stereo;
