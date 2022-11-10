@@ -4,7 +4,9 @@ The SI4732 essentially supports three separate radio modes, FM, AM (including SW
 
 ![](../image/ats100home.jpg)
 
-In contrast to the ATS-25 which has a touch screen, all interaction is via the rotary controller.To select a button or a control such as the BAND selector, turn the knob until the button/control is highlighted, then push the button to activate.
+In contrast to the ATS-25 which has a touch screen, all interaction is via the rotary controller. To select a button or a control such as the BAND selector, turn the knob until the button/control is highlighted, then push the button to activate. 
+
+Each of the radio apps saves frequency, volume, brightness and bandwidth settings on exit and these are restored the next time the app is entered. 
 
 ## FM Radio
 
@@ -30,6 +32,7 @@ The tuning increment can be changed to 10,000Hz, 1000Hz, 100Hz or 10Hz using the
 ## Direct Frequency Input
 
 Each of the above three radio apps permits a user to directly input the desired frequency to tune by double clicking with the pushbutton on the frequency display.
+
 ![](../image/dclick.jpg)
 
 
