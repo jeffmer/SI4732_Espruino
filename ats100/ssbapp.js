@@ -56,7 +56,7 @@ const steps =[10,100,1000,10000];
 const bwidss =[1.2,2.2,3,4,0.5,1];
 function changeBW(b,index){
   if (!b) return;
-  if (index) BWindex=index; else BWindex = (BWindex+1)%6;
+  if (typeof index !== 'undefined') BWindex=index; else BWindex = (BWindex+1)%6;
   var pat = bwidss[BWindex]<2.5 ? BWindex : 0x10 | BWindex;
   SSB_MODE = (SSB_MODE & 0xFF00) | pat;
   RADIO.setProp(0x0101,SSB_MODE);

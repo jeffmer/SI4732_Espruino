@@ -26,7 +26,7 @@ var FREQDISP = new FreqDisp("KHz",50,19,115,28,0,5,FREQ,(b)=>{STATE = b?2:0;},(f
 var SCANUP = new Button("Scan+",0,  111, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN);},12);
 var SCANDOWN = new Button("Scan-",49, 111, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
 var STEPSET =  new Button("9",  0,94, 44, 12,(b)=>{changeStep(b);},8);
-var BWSET =  new Button("6.0",  49,94, 44, 12,(b)=>{changeBW(b);},8);
+var BWSET =  new Button("4.0",  49,94, 44, 12,(b)=>{changeBW(b);},8);
 var ITEMS=[
     FREQDISP, VOLDISP,BRIGHTDISP, STEPSET, BWSET, BANDSEL,SCANUP, SCANDOWN,  
     new Button("Mute" ,98,111, 44, 23, (b)=>{RADIO.mute(b);},12),
@@ -43,9 +43,9 @@ function changeStep(b){
 }
 
 const bwidss =[6,4,3,2,1,1.8,2.5];
-function changeBW(b,n){
+function changeBW(b,index){
   if (!b) return;
-  BWindex = (BWindex+1)%7;
+  if (typeof index !== 'undefined') BWindex=index; else BWindex = (BWindex+1)%7;
   RADIO.setProp(0x3102,BWindex);
   BWSET.str = bwidss[BWindex].toFixed(1);
   BWSET.reset();
@@ -166,13 +166,33 @@ function setControls(){
     BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 
+var s;
+
+function restoreState(){
+   s = STOR.readJSON("amstate.json",1)||{frequency:1024, volume:32, bright:40, bandwidth:1};
+   VOL=s.volume; VOLDISP.update(VOL); RADIO.volume(VOL);
+   BRIGHT=s.bright; BRIGHTDISP.update(BRIGHT); brightness(BRIGHT/63);
+   changeBW(true,s.bandwidth);
+   findBand(s.frequency);
+}
+
+function saveState(){
+  s.frequency=FREQ;
+  s.volume=VOL;
+  s.bright=BRIGHT;
+  s.bandwidth=BWindex;
+  STOR.writeJSON("amstate.json",s);
+}
+
+E.on("kill",saveState);
+
 g.clear();
 for (var i=0;i<ITEMS.length;i++) 
   ITEMS[i].focus(i==position);
 g.setColor(Yellow).setFont('6x8').setFontAlign(-1,-1).drawString("Step",0,83).drawString("BWid",49,83);
 setControls();
 initRADIO();
-setTune(FREQ);
+restoreState();
 setInterval(()=>{
   var r = RADIO.getSQ();
   SNR=r.snr; RSSI=r.rssi; STEREO=r.stereo;
