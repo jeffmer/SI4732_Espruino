@@ -84,7 +84,7 @@ function setTune(f){
         if (SCANNER) SCANNER=clearInterval(SCANNER);
         var r=RADIO.getTuneStatus();
         FREQ=r.freq; SNR=r.snr; RSSI=r.rssi;
-        FREQDISP.update(FREQ/100); drawSignal();
+        FREQDISP.update(FREQ/10); drawSignal();
         thisone.reset();
      },100);
   }
