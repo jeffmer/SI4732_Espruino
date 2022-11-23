@@ -37,7 +37,7 @@ Each of the above three radio apps permits a user to directly input the desired 
 
 ## Installation instructions
 
-**  WARNING: This will wipe the existing firmware on the ATS100 and the only way to recover is to rebuild the original Arduino software from [here](https://github.com/ralphxavier/SI4735) - which I have not tested and which may not work - see disclaimer at that repository.
+*WARNING: This will wipe the existing firmware on the ATS100 and the only way to recover is to rebuild the original Arduino software from [here](https://github.com/ralphxavier/SI4735) - which I have not tested and which may not work - see disclaimer at that repository.*
 
 There are two steps to installing the software.
 
@@ -54,6 +54,7 @@ boot0.js -> .boot0
 bootcde.js -> .bootcde
 encode.js 
 // all the javascript file in the ats100 folder
+ats100/smallradio.png -> smallradio   // choose 4bit MAc pallette to convert in WebIDE.
 ```
 
 This is rather laborious as the current Espruino app loader does not support Web Serial.
