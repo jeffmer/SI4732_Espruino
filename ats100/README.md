@@ -35,11 +35,35 @@ Each of the above three radio apps permits a user to directly input the desired 
 
 ![](../image/dclick.jpg)
 
+## Installation instructions
+
+**  WARNING: This will wipe the existing firmware on the ATS100 and the only way to recover is to rebuild the original Arduino software from [here](https://github.com/ralphxavier/SI4735) - which I have not tested and which may not work - see disclaimer at that repository.
+
+There are two steps to installing the software.
+
+1) Install modified Espruino interpreter from this repository using ```esptool```. 
+   The esptool paramemters can be found in [README_flash.txt](../espruino_2v13.11_esp32/README_flash.txt).
+   For further information on installing Espruino on the ESP32 see the [Espruino Website](https://www.espruino.com/ESP32).
+
+After loading the binaries and resetting the ESP32, it should now be possible to connect to the ESP32 using the Espruino [WebIDE](https://www.espruino.com/ide/). - see [here](https://www.espruino.com/Programming) for further information.  Note that it requires Web Serial to be enable the browser  I use Chrome and Chromium. When you connect, a REPL prompt should appear.
+
+2) The next step is to load the set of Javascript files using the WebIDE. The following is the list of files, some of which need to be renamed when loading. To load a file click the disk icon - three down - on the central panel of the IDE.
+
+```
+boot0.js -> .boot0
+bootcde.js -> .bootcde
+encode.js 
+// all the javascript file in the ats100 folder
+```
+
+This is rather laborious as the current Espruino app loader does not support Web Serial.
+
+## DISCLAIMER
+
+There is no guarantee that this will  work on your ATS100 without modification. 
 
 
-## TO BE DONE
 
-Installation instructions
 
 
 
