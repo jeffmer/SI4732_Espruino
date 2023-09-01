@@ -37,4 +37,4 @@ function createSwitch(pinA){
 var BUTTON = createSwitch(D2);
 function getBattery() {return 7.24 * analogRead(D35);}
 
-BUTTON.on("longpush",()=>load("chooser.js"));
+BUTTON.on("longpush",()=>{RADIO.reset();load("chooser.js");});

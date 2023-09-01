@@ -7,6 +7,7 @@ eval(STOR.read("rds.js"));
 var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS
 var VOL=32;
 var BRIGHT=40;
+var SCREENSAVE=30;
 var FREQ=9580;
 var RSSI =0;
 var SNR =0;
@@ -111,6 +112,8 @@ function move(inc){
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
+        if (SCREENSAVE<=0) brightness(BRIGHT/63);
+        SCREENSAVE = 30;
         if (FREQDISP.edit) 
             FREQDISP.adjust(inc);
         else if (STATE==0) {
@@ -125,7 +128,7 @@ function setControls(){
             RADIO.volume(VOL);
         } else if(STATE==4) {
             BRIGHT+=inc*4;
-            BRIGHT=BRIGHT<0?0:BRIGHT>63?63:BRIGHT;
+            BRIGHT=BRIGHT<5?5:BRIGHT>63?63:BRIGHT;
             BRIGHTDISP.update(BRIGHT);
             brightness(BRIGHT/63);
         } else if (STATE==3) {
@@ -176,4 +179,10 @@ setInterval(()=>{
   SNR=r.snr; RSSI=r.rssi; STEREO=r.stereo;
   drawSignal();
   g.setFontAlign(-1,-1).drawString("BAT: "+getBattery().toFixed(1)+"V",180,0,true);
+  if (SCREENSAVE>0) {
+    --SCREENSAVE;
+    if (SCREENSAVE<=0){
+      brightness(0);
+    }
+  } 
 },1000);

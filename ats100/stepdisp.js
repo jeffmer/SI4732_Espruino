@@ -3,12 +3,12 @@
 
 class StepDisp {
     constructor(x,y,d,fn){
-        this.steps=[10000,1000,100,10];
+        this.steps=[10000,5000,1000,100,10];
         this.x=x;
         this.y=y;
         this.d = d;
         this.pos=1;
-        this.buf = Graphics.createArrayBuffer(23*this.steps.length,this.d,1,{msb:true});
+        this.buf = Graphics.createArrayBuffer(23*4,this.d,1,{msb:true});
         this.focusd = false;
         this.fn = fn;
         this.press = false;
@@ -18,7 +18,7 @@ class StepDisp {
 
     draw() { 
         this.buf.clear();
-        var sx = this.pos*23;
+        var sx = this.pos>1?(this.pos-1)*23:this.pos==1?11:0;
         this.buf.fillRect(sx,0,sx+16,this.d-1);
         g.setBgColor(this.focusd?DarkGrey:0).setColor(this.press?-1:Cyan).drawImage(this.buf,this.x,this.y);
         g.setBgColor(0);

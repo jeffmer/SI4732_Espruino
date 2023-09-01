@@ -6,6 +6,7 @@ eval(STOR.read("stepdisp.js"));
 
 var VOL=32;
 var BRIGHT=40;
+var SCREENSAVE=30;
 var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS, 5= STEPSET
 var TUNEORSTEP = false;
 var TUNEDFREQ=3303000;   //Hz
@@ -17,7 +18,7 @@ var LOWBAND = 4700;
 var HIGHBAND = 5500;
 var MOD="USB";
 var SSB_MODE=0x9001; //AFC disable, AVC enable, bandpass&cutoff, 2.2Khz BW
-var STEP = 1000;
+var STEP = 5000;
 var BWindex = 3;
 var CAP =1;
 
@@ -48,10 +49,6 @@ function changeSideBand(b){
   setModulation(); 
   setTune(TUNEDFREQ,true); //force tune to change side band
 }
-
-var stepindex= 2;
-const steps =[10,100,1000,10000];
-
 
 const bwidss =[1.2,2.2,3,4,0.5,1];
 function changeBW(b,index){
@@ -138,6 +135,8 @@ function move(inc){
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
+      if (SCREENSAVE<=0) brightness(BRIGHT/63);
+      SCREENSAVE = 30;
         if (FREQDISP.edit) 
           FREQDISP.adjust(inc);
          else if (STATE==0) {
@@ -152,7 +151,7 @@ function setControls(){
             RADIO.volume(VOL);
         } else if(STATE==4) {
             BRIGHT+=inc*4;
-            BRIGHT=BRIGHT<0?0:BRIGHT>63?63:BRIGHT;
+            BRIGHT=BRIGHT<5?5:BRIGHT>63?63:BRIGHT;
             BRIGHTDISP.update(BRIGHT);
             brightness(BRIGHT/63);
         } else if (STATE==3) {
@@ -201,5 +200,11 @@ if (initRADIO()){
     SNR=r.snr; RSSI=r.rssi; STEREO=r.stereo;
     drawSignal();
     g.setFontAlign(-1,-1).drawString("BAT: "+getBattery().toFixed(1)+"V",180,0,true);
+    if (SCREENSAVE>0) {
+      --SCREENSAVE;
+      if (SCREENSAVE<=0){
+        brightness(0);
+      }
+    } 
   },1000);
 } else g.clear().setColor(-1).setFont("Vector",24).drawString("FAILED to load SSB patch",10,70);
