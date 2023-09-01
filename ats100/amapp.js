@@ -28,8 +28,9 @@ var SCANUP = new Button("Scan+",0,  111, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN)
 var SCANDOWN = new Button("Scan-",49, 111, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
 var STEPSET =  new Button("9",  0,94, 44, 12,(b)=>{changeStep(b);},8);
 var BWSET =  new Button("4.0",  49,94, 44, 12,(b)=>{changeBW(b);},8);
+var AGCCTL = new Button("agc",  98,94, 44, 12,(b)=>{RADIO.setAGC(b,0);},8);
 var ITEMS=[
-    FREQDISP, VOLDISP,BRIGHTDISP, STEPSET, BWSET, BANDSEL,SCANUP, SCANDOWN,  
+    FREQDISP, VOLDISP,BRIGHTDISP, STEPSET, BWSET, AGCCTL, BANDSEL,SCANUP, SCANDOWN,  
     new Button("Mute" ,98,111, 44, 23, (b)=>{RADIO.mute(b);},12),
 ]; 
     
@@ -124,6 +125,7 @@ function initRADIO(){
     RADIO.setProp(0x3102,BWindex);
     RADIO.volume(VOL);
     setBand();
+    RADIO.setAGC(false,0);
 }
 
 var prevpos =0;
