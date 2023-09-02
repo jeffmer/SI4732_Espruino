@@ -5,7 +5,7 @@ eval(STOR.read("freqdisp.js"));
 
 var VOL=32;
 var BRIGHT=40;
-var SCREENSAVE=30;
+var SCREENSAVE=120;
 var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS
 var FREQ = 198;
 var RSSI =0;
@@ -28,11 +28,24 @@ var SCANUP = new Button("Scan+",0,  111, 44, 23, ()=>{scan(true,SCANUP,SCANDOWN)
 var SCANDOWN = new Button("Scan-",49, 111, 44, 23, ()=>{scan(false,SCANDOWN,SCANUP);},12);
 var STEPSET =  new Button("9",  0,94, 44, 12,(b)=>{changeStep(b);},8);
 var BWSET =  new Button("4.0",  49,94, 44, 12,(b)=>{changeBW(b);},8);
-var AGCCTL = new Button("agc",  98,94, 44, 12,(b)=>{RADIO.setAGC(b,0);},8);
+var AGCCTL = new Button("agc on",  98,94, 44, 12,(b)=>{changeAGC(b);},8);
 var ITEMS=[
     FREQDISP, VOLDISP,BRIGHTDISP, STEPSET, BWSET, AGCCTL, BANDSEL,SCANUP, SCANDOWN,  
     new Button("Mute" ,98,111, 44, 23, (b)=>{RADIO.mute(b);},12),
 ]; 
+
+var agcindex = 0;
+const agcstr = ["agc on", "off", "low", "med", "high"]
+function changeAGC(b){
+  if (!b) return;
+  agcindex = (agcindex+1)%5;
+  AGCCTL.str = agcstr[agcindex];
+  if (agcindex==0) 
+    RADIO.setAGC(true,0);
+  else
+    RADIO.setAGC(false,(agcindex-1)*3);
+  AGCCTL.reset();
+}
     
 var stepindex= 2;
 const steps =[1,5,9,10];
@@ -125,7 +138,7 @@ function initRADIO(){
     RADIO.setProp(0x3102,BWindex);
     RADIO.volume(VOL);
     setBand();
-    RADIO.setAGC(false,0);
+    RADIO.setAGC(true,0);
 }
 
 var prevpos =0;
@@ -141,16 +154,16 @@ function move(inc){
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
-      if (SCREENSAVE<=0) brightness(BRIGHT/63);
-      SCREENSAVE = 30;
-        if (FREQDISP.edit) 
-          FREQDISP.adjust(inc);
-         else if (STATE==0) {
-           move(inc);
-        } else if (STATE==2){
-             FREQ+=(inc*STEP);
-             FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
-             setTune(FREQ);
+        if (SCREENSAVE<=0) 
+            brightness(BRIGHT/63);
+        else if (FREQDISP.edit) 
+            FREQDISP.adjust(inc);
+        else if (STATE==0) 
+            move(inc);
+        else if (STATE==2){
+            FREQ+=(inc*STEP);
+            FREQ = FREQ<LOWBAND?LOWBAND:FREQ>HIGHBAND?HIGHBAND:FREQ;
+            setTune(FREQ);
         } else if(STATE==1) {
             VOL+=inc*4;
             VOL=VOL<0?0:VOL>63?63:VOL;
@@ -164,10 +177,14 @@ function setControls(){
         } else if (STATE==3) {
           BANDSEL.move(inc);
           if (BANDS.length!=0) setBand();
-        }     
+        } 
+        SCREENSAVE = 120;    
     };
     ROTARY.on("change",ROTARY.handler);  
-    BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
+    BUTTON.on("change",(d)=>{
+      if (SCREENSAVE<=0) brightness(BRIGHT/63); else ITEMS[position].toggle(d);
+      SCREENSAVE = 120;
+    });
     BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 

@@ -6,7 +6,7 @@ eval(STOR.read("stepdisp.js"));
 
 var VOL=32;
 var BRIGHT=40;
-var SCREENSAVE=30;
+var SCREENSAVE=120;
 var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS, 5= STEPSET
 var TUNEORSTEP = false;
 var TUNEDFREQ=3303000;   //Hz
@@ -88,15 +88,22 @@ function setBand(fkhz) {
 }
 
 function setTune(f,b){
+  if (f<153000) return;
   var newf = 2*Math.round(f/20000);
   BFO = f - newf* 10000;
   if (newf!=FREQ || b){
-   FREQ = newf;
-   RADIO.tuneSSB(FREQ*10,CAP,MOD=="USB");
-   while(!RADIO.endTune());
-    var r= RADIO.getTuneStatus();
-    SNR=r.snr; RSSI=r.rssi;
-    drawSignal();
+      FREQ = newf;
+      RADIO.tuneSSB(FREQ*10,CAP,MOD=="USB");
+      for(var i=0;i<500;i++) {
+        if(RADIO.endTune()) break;
+      }
+      if (!RADIO.endTune()){
+        print("ERROR - setTune timeout");
+        return;
+      }
+      var r= RADIO.getTuneStatus();
+      SNR=r.snr; RSSI=r.rssi;
+      drawSignal();
   }
   RADIO.setProp(0x100,-BFO);
   //console.log("TUNEDFREQ ",TUNEDFREQ,"FREQ ",FREQ,"BFO ",BFO);
@@ -135,9 +142,9 @@ function move(inc){
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
-      if (SCREENSAVE<=0) brightness(BRIGHT/63);
-      SCREENSAVE = 30;
-        if (FREQDISP.edit) 
+      if (SCREENSAVE<=0)
+       brightness(BRIGHT/63);
+      else if (FREQDISP.edit) 
           FREQDISP.adjust(inc);
          else if (STATE==0) {
            move(inc);
@@ -160,10 +167,14 @@ function setControls(){
         } else if (STATE==5){
           STEPDISP.move(inc);
           STEP=STEPDISP.step();
-        }    
+        }   
+        SCREENSAVE = 120; 
     };
     ROTARY.on("change",ROTARY.handler);  
-    BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
+    BUTTON.on("change",(d)=>{
+      if (SCREENSAVE<=0) brightness(BRIGHT/63); else ITEMS[position].toggle(d);
+      SCREENSAVE = 120;
+    });
     BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 

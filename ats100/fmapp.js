@@ -7,7 +7,7 @@ eval(STOR.read("rds.js"));
 var STATE=0;  //0 = SELECT, 1 = VOL, 2= FREQ, 3 = STATION, 4 = BRIGHTNESS
 var VOL=32;
 var BRIGHT=40;
-var SCREENSAVE=30;
+var SCREENSAVE=120;
 var FREQ=9580;
 var RSSI =0;
 var SNR =0;
@@ -112,9 +112,9 @@ function move(inc){
 
 function setControls(){ 
     ROTARY.handler = (inc) => {
-        if (SCREENSAVE<=0) brightness(BRIGHT/63);
-        SCREENSAVE = 30;
-        if (FREQDISP.edit) 
+        if (SCREENSAVE<=0) 
+          brightness(BRIGHT/63);
+        else if (FREQDISP.edit) 
             FREQDISP.adjust(inc);
         else if (STATE==0) {
            move(inc);
@@ -134,10 +134,14 @@ function setControls(){
         } else if (STATE==3) {
            STATSEL.move(inc);
            if (STATIONS.length!=0) setTune(STATSEL.freq());
-        }     
+        }  
+        SCREENSAVE = 120;   
     };
     ROTARY.on("change",ROTARY.handler);  
-    BUTTON.on("change",(d)=>{ITEMS[position].toggle(d);});
+    BUTTON.on("change",(d)=>{
+      if (SCREENSAVE<=0) brightness(BRIGHT/63); else ITEMS[position].toggle(d);
+      SCREENSAVE = 120;
+    });
     BUTTON.on("doubleclick",()=>{if (FREQDISP.focusd) FREQDISP.onDclick();});
 }
 
