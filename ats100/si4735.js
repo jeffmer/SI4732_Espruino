@@ -18,7 +18,7 @@ var RADIO = {
     reset:() => {
         D25.set();
         digitalPulse(D25,0,10);
-        RADIO.delayms(10);
+        RADIO.delayms(30);
         
     },
     waitCTS:(d)=>{
