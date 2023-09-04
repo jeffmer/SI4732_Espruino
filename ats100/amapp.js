@@ -136,6 +136,7 @@ function initRADIO(){
     RADIO.powerAM(true);
     RADIO.setProp(0xFF00,0); //turn off debug see AN332 re noise
     RADIO.setProp(0x3102,BWindex);
+    RADIO.setProp(0x3302,0);
     RADIO.volume(VOL);
     setBand();
     RADIO.setAGC(true,0);
